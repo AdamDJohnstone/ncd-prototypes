@@ -230,8 +230,8 @@ body.viewer{
 
 .grow-button{
   position:absolute;
-  left:50%;
-  bottom:12px;
+  right:18px;
+  bottom:18px;
   transform:translateX(-50%);
 
   display:flex;
@@ -267,18 +267,18 @@ body.viewer{
 
 @keyframes buttonReveal{
   from{
-    opacity:0;
-    transform:translateX(-50%) translateY(5px);
+      opacity:0;
+      transform:translateY(5px);
   }
   to{
-    opacity:1;
-    transform:translateX(-50%) translateY(0);
+      opacity:1;
+      transform:translateY(0);
   }
 }
 
 .grow-button:hover{
   background:#fff;
-  transform:translateX(-50%) translateY(-1px);
+  transform:translateY(-1px);
 }
 
 .grow-icon{
