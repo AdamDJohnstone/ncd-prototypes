@@ -711,7 +711,7 @@
             }
   
             if(label){
-              label.textContent = "Watch again";
+              label.textContent = "🌱 Watch again";
             }
   
             growBtn.classList.add("is-replay");
