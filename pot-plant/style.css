@@ -183,3 +183,150 @@ body.viewer{
   }
 }
 
+/* =========================================================
+   CLEAN VIEW — REVEAL / GROWTH EXPERIENCE
+   ========================================================= */
+
+/* Labels gently arrive when the iframe first appears */
+.viewer #labels{
+  opacity:0;
+  animation:labelReveal 700ms ease-out 120ms forwards;
+}
+
+@keyframes labelReveal{
+  from{
+    opacity:0;
+  }
+  to{
+    opacity:1;
+  }
+}
+
+
+/* In the clean viewer, wedges begin completely absent */
+.viewer .wedge{
+  opacity:0;
+  transform-box:fill-box;
+  transform-origin:center;
+  transform:scale(.97);
+
+  transition:
+    opacity 800ms ease-out,
+    transform 900ms cubic-bezier(.2,.7,.2,1),
+    filter .18s ease;
+}
+
+
+/* Clicking Watch it grow softly reveals the church profile */
+.viewer.revealing .wedge,
+.viewer.growing .wedge,
+.viewer.settled .wedge{
+  opacity:.70;
+  transform:scale(1);
+}
+
+
+/* Watch it grow button */
+
+.grow-button{
+  position:absolute;
+  left:50%;
+  bottom:12px;
+  transform:translateX(-50%);
+
+  display:flex;
+  align-items:center;
+  gap:9px;
+
+  padding:10px 17px;
+
+  border:1px solid rgba(36,49,43,.18);
+  border-radius:999px;
+
+  background:rgba(255,255,255,.94);
+  color:#24312b;
+
+  font:inherit;
+  font-size:15px;
+  font-weight:650;
+
+  box-shadow:0 4px 16px rgba(0,0,0,.08);
+  backdrop-filter:blur(6px);
+
+  cursor:pointer;
+  z-index:10;
+
+  opacity:0;
+  animation:buttonReveal 600ms ease-out 450ms forwards;
+
+  transition:
+    opacity 300ms ease,
+    transform 200ms ease,
+    background 200ms ease;
+}
+
+@keyframes buttonReveal{
+  from{
+    opacity:0;
+    transform:translateX(-50%) translateY(5px);
+  }
+  to{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+  }
+}
+
+.grow-button:hover{
+  background:#fff;
+  transform:translateX(-50%) translateY(-1px);
+}
+
+.grow-icon{
+  color:var(--spiral);
+  font-size:13px;
+}
+
+
+/* Hide the control while the story is unfolding */
+
+.grow-button.is-running{
+  opacity:0 !important;
+  pointer-events:none;
+}
+
+
+/* Replay icon */
+
+.grow-button.is-replay .grow-icon{
+  font-size:18px;
+}
+
+
+/* Once growth has finished, allow the spiral to settle visually */
+
+.viewer #spiral,
+.viewer #spiralUnder,
+.viewer #stopDot{
+  transition:
+    stroke 1800ms ease,
+    stroke-opacity 1800ms ease,
+    fill 1800ms ease,
+    filter 1800ms ease;
+}
+
+.viewer.settled #spiral{
+  stroke:#8d8548;
+  stroke-opacity:.68;
+  filter:none;
+}
+
+.viewer.settled #spiralUnder{
+  stroke:#8d8548;
+  stroke-opacity:.12;
+}
+
+.viewer.settled #stopDot{
+  fill:#8d8548;
+  filter:none;
+}
+
