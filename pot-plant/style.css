@@ -167,6 +167,7 @@ body.viewer{
 }
 
 .viewer .pot-plant-view{
+  position:relative;
   width:min(100vw,100vh);
   height:min(100vw,100vh);
   padding:0;
@@ -337,7 +338,9 @@ body.viewer{
 /* Wedges and labels indicate that they can be explored */
 
 .playground .wedge,
-.playground .qc-clickable,
+.playground .qc-clickable{
+  cursor:pointer;
+},
 .viewer.has-grown .wedge,
 .viewer.revealing .wedge,
 .viewer.growing .wedge,
