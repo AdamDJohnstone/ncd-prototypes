@@ -217,6 +217,20 @@ body.viewer{
     filter .18s ease;
 }
 
+/* Before growth begins, invisible wedges must not be clickable */
+.viewer:not(.revealing):not(.growing):not(.settled):not(.has-grown) .wedge{
+  pointer-events:none;
+}
+
+
+/* Clicking Watch it grow softly reveals the church profile */
+.viewer.revealing .wedge,
+.viewer.growing .wedge,
+.viewer.settled .wedge{
+  opacity:.70;
+  transform:scale(1);
+}
+
 
 /* Clicking Watch it grow softly reveals the church profile */
 .viewer.revealing .wedge,
@@ -233,7 +247,6 @@ body.viewer{
   position:absolute;
   right:18px;
   bottom:18px;
-  transform:translateX(-50%);
 
   display:flex;
   align-items:center;
@@ -337,10 +350,10 @@ body.viewer{
 
 /* Wedges and labels indicate that they can be explored */
 
-.playground .wedge,
-.playground .qc-clickable{
+.wedge,
+.qc-clickable{
   cursor:pointer;
-},
+}
 .viewer.has-grown .wedge,
 .viewer.revealing .wedge,
 .viewer.growing .wedge,
