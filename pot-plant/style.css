@@ -330,3 +330,167 @@ body.viewer{
   filter:none;
 }
 
+/* =========================================================
+   QUALITY CHARACTERISTIC INTERACTION
+   ========================================================= */
+
+/* Wedges and labels indicate that they can be explored */
+
+.playground .wedge,
+.playground .qc-clickable,
+.viewer.has-grown .wedge,
+.viewer.revealing .wedge,
+.viewer.growing .wedge,
+.viewer.settled .wedge,
+.viewer .qc-clickable{
+  cursor:pointer;
+}
+
+.playground .wedge:hover,
+.viewer.has-grown .wedge:hover,
+.viewer.revealing .wedge:hover,
+.viewer.growing .wedge:hover,
+.viewer.settled .wedge:hover{
+  opacity:.86;
+}
+
+.qc-clickable{
+  transition:opacity 180ms ease;
+}
+
+.qc-clickable:hover{
+  opacity:.62;
+}
+
+
+/* Make keyboard focus visible without being intrusive */
+
+.wedge:focus-visible,
+.qc-clickable:focus-visible{
+  outline:none;
+  filter:drop-shadow(0 0 5px rgba(36,49,43,.4));
+}
+
+
+/* =========================================================
+   QUALITY CHARACTERISTIC CARD
+   ========================================================= */
+
+.qc-card{
+  position:absolute;
+
+  left:50%;
+  bottom:18px;
+
+  width:min(620px,calc(100% - 36px));
+
+  transform:
+    translateX(-50%)
+    translateY(calc(100% + 40px));
+
+  opacity:0;
+  pointer-events:none;
+
+  padding:24px 58px 24px 26px;
+
+  border:1px solid rgba(36,49,43,.14);
+  border-radius:18px;
+
+  background:rgba(255,255,255,.97);
+
+  box-shadow:
+    0 10px 40px rgba(0,0,0,.13);
+
+  backdrop-filter:blur(10px);
+
+  z-index:30;
+
+  transition:
+    transform 380ms cubic-bezier(.2,.75,.2,1),
+    opacity 280ms ease;
+}
+
+
+.qc-card.is-open{
+  transform:
+    translateX(-50%)
+    translateY(0);
+
+  opacity:1;
+  pointer-events:auto;
+}
+
+
+/* Quality Characteristic name */
+
+.qc-card-name{
+  margin-bottom:8px;
+
+  color:#68736d;
+
+  font-size:14px;
+  font-weight:700;
+
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+
+
+/* The human / heart question */
+
+.qc-card-question{
+  color:#24312b;
+
+  font-size:clamp(24px,4vw,36px);
+  line-height:1.12;
+  font-weight:750;
+
+  margin-bottom:12px;
+}
+
+
+/* One-sentence explanation */
+
+.qc-card-description{
+  margin:0;
+
+  color:#52605a;
+
+  font-size:16px;
+  line-height:1.5;
+}
+
+
+/* Close button */
+
+.qc-card-close{
+  position:absolute;
+
+  top:12px;
+  right:14px;
+
+  width:34px;
+  height:34px;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  border:0;
+  border-radius:50%;
+
+  padding:0;
+
+  background:transparent;
+  color:#68736d;
+
+  font-size:26px;
+  line-height:1;
+
+  cursor:pointer;
+}
+
+.qc-card-close:hover{
+  background:rgba(36,49,43,.06);
+  color:#24312b;
+}
