@@ -574,6 +574,167 @@
 
   buildControls();
   syncControls();
-  render(true);
+  
+  const isViewer = document.body.classList.contains("viewer");
+  const growBtn = document.getElementById("growBtn");
+  
+  if(isViewer){
+  
+    /*
+      CLEAN VIEW INITIAL STATE
+  
+      Show:
+        - Quality Characteristic labels
+        - Watch it grow button
+  
+      Hide:
+        - wedges
+        - spiral
+  
+      The wedges themselves are drawn immediately, but CSS keeps
+      them invisible until the user begins the experience.
+    */
+  
+    const {ranks,minIdx} = draw();
+  
+    spiralPoints = buildSpiralPoints(ranks,minIdx);
+  
+    spiralPath.setAttribute("d",`M ${cx} ${cy}`);
+    spiralUnder.setAttribute("d",`M ${cx} ${cy}`);
+  
+    stopDot.setAttribute("cx",cx);
+    stopDot.setAttribute("cy",cy);
+    stopDot.style.opacity = 0;
+  
+  
+    if(growBtn){
+  
+      growBtn.addEventListener("click",() => {
+  
+        /* Reset any previous finished state */
+        document.body.classList.remove("settled");
+        document.body.classList.remove("growing");
+  
+        /*
+          On the FIRST viewing, reveal the wedges before growth begins.
+  
+          On replay, the wedges remain visible because they have
+          already become part of the understood picture.
+        */
+  
+        const firstRun =
+          !document.body.classList.contains("has-grown");
+  
+  
+        growBtn.classList.add("is-running");
+  
+  
+        if(firstRun){
+  
+          /*
+            PHASE 1
+            Reveal the health profile.
+          */
+  
+          document.body.classList.add("revealing");
+  
+  
+          /*
+            PHASE 2
+            After the wedges have materialised, allow a small pause
+            so the viewer can register the shape before growth begins.
+          */
+  
+          window.setTimeout(() => {
+  
+            document.body.classList.remove("revealing");
+            document.body.classList.add("growing");
+  
+            animateSpiral();
+  
+          }, 1000);
+  
+        } else {
+  
+          /*
+            REPLAY
+  
+            The viewer already understands the wedges, so replay only
+            the all-by-itself growth.
+          */
+  
+          document.body.classList.add("growing");
+  
+          animateSpiral();
+        }
+  
+  
+        /*
+          Work out when the spiral itself will finish.
+  
+          First viewing has the additional 1-second wedge reveal.
+        */
+  
+        const preGrowthDelay = firstRun ? 1000 : 0;
+  
+  
+        window.setTimeout(() => {
+  
+          /*
+            Let the completed gold spiral sit briefly before settling
+            into the quieter olive tone.
+          */
+  
+          window.setTimeout(() => {
+  
+            document.body.classList.remove("growing");
+            document.body.classList.add("settled");
+            document.body.classList.add("has-grown");
+  
+          }, 500);
+  
+  
+          /*
+            Return the control as "Watch again".
+          */
+  
+          window.setTimeout(() => {
+  
+            const icon =
+              growBtn.querySelector(".grow-icon");
+  
+            const label =
+              growBtn.querySelector(".grow-label");
+  
+            if(icon){
+              icon.textContent = "↻";
+            }
+  
+            if(label){
+              label.textContent = "Watch again";
+            }
+  
+            growBtn.classList.add("is-replay");
+            growBtn.classList.remove("is-running");
+  
+          }, 900);
+  
+        }, preGrowthDelay + animationDurationMs);
+  
+      });
+  
+    }
+  
+  } else {
+  
+    /*
+      PLAYGROUND
+  
+      Keep the existing behaviour:
+      render immediately and automatically animate.
+    */
+  
+    render(true);
+  }
 })();
 
