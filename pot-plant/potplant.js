@@ -105,7 +105,7 @@
       adjective:"Passionate",
       noun:"Spirituality",
   
-      heartQuestion:"Do I really love God?",
+      heartQuestion:"Do I really trust God?",
   
       description:
         "Passionate spirituality grows where faith is lived from a genuine and life-giving relationship with God."
