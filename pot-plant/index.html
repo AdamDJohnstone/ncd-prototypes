@@ -1,1 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NCD Pot Plant Prototype</title>
 
+<style>
+    body{
+        margin:0;
+        font-family:Arial,Helvetica,sans-serif;
+        background:#f5f5f5;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        height:100vh;
+    }
+
+    .card{
+        background:white;
+        width:900px;
+        padding:40px;
+        border-radius:20px;
+        box-shadow:0 8px 30px rgba(0,0,0,.15);
+        text-align:center;
+    }
+
+    h1{
+        margin-top:0;
+        color:#2f6d3c;
+    }
+
+    #spiral{
+        width:500px;
+        height:500px;
+        margin:auto;
+    }
+
+    p{
+        color:#666;
+        font-size:18px;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<h1>🌱 Pot Plant Playground</h1>
+
+<svg id="spiral" viewBox="-250 -250 500 500">
+
+    <path
+        id="line"
+        fill="none"
+        stroke="#d8a900"
+        stroke-width="7"
+        stroke-linecap="round"/>
+
+</svg>
+
+<p>
+First GitHub Pages prototype
+</p>
+
+</div>
+
+<script>
+
+const turns = 4;
+const maxRadius = 180;
+const points = [];
+
+for(let t=0;t<turns*Math.PI*2;t+=0.03){
+
+    const r = maxRadius*(t/(turns*Math.PI*2));
+
+    points.push([
+        r*Math.cos(t-Math.PI/2),
+        r*Math.sin(t-Math.PI/2)
+    ]);
+}
+
+let d="";
+
+points.forEach((p,i)=>{
+
+    d += (i===0?"M":"L")+p[0]+" "+p[1]+" ";
+
+});
+
+const path=document.getElementById("line");
+
+path.setAttribute("d",d);
+
+const length=path.getTotalLength();
+
+path.style.strokeDasharray=length;
+path.style.strokeDashoffset=length;
+
+path.animate(
+[
+{strokeDashoffset:length},
+{strokeDashoffset:0}
+],
+{
+duration:10000,
+fill:"forwards",
+easing:"linear"
+});
+
+</script>
+
+</body>
+</html>
