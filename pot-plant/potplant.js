@@ -283,12 +283,33 @@
 
       const bottom = isBottomHalf(mid);
       const reverse = bottom;
-
-      const innerLabelR = maxRadius + 26;
-      const outerLabelR = maxRadius + 52;
-
-      const adjR = bottom ? innerLabelR : outerLabelR;
-      const nounR = bottom ? outerLabelR : innerLabelR;
+      
+      /*
+        Treat each adjective+noun pair as one visual label block.
+      
+        The normal labels occupy two curved text lines around the same
+        imaginary outer ring.
+      
+        When the lower three labels are reversed to keep them readable,
+        the whole two-line block is shifted outward by one line. This
+        prevents the adjective from falling inward toward the diagram.
+      */
+      
+      const labelInnerR = maxRadius + 26;
+      const labelLineGap = 34;
+      const labelOuterR = labelInnerR + labelLineGap;
+      
+      let adjR;
+      let nounR;
+      
+      if (bottom) {
+        // Shift the entire reversed block outward by one line.
+        adjR = labelOuterR;
+        nounR = labelOuterR + labelLineGap;
+      } else {
+        adjR = labelOuterR;
+        nounR = labelInnerR;
+      }
 
       const arcStart = a0 + 3.5;
       const arcEnd = a1 - 3.5;
