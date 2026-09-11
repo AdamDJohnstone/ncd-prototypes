@@ -1,116 +1,595 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NCD Pot Plant Prototype</title>
-
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>NCD Pot Plant Playground</title>
 <style>
-    body{
-        margin:0;
-        font-family:Arial,Helvetica,sans-serif;
-        background:#f5f5f5;
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        height:100vh;
-    }
-
-    .card{
-        background:white;
-        width:900px;
-        padding:40px;
-        border-radius:20px;
-        box-shadow:0 8px 30px rgba(0,0,0,.15);
-        text-align:center;
-    }
-
-    h1{
-        margin-top:0;
-        color:#2f6d3c;
-    }
-
-    #spiral{
-        width:500px;
-        height:500px;
-        margin:auto;
-    }
-
-    p{
-        color:#666;
-        font-size:18px;
-    }
+  :root{
+    --bg:#f7f5ef;
+    --panel:#ffffff;
+    --ink:#24312b;
+    --muted:#68736d;
+    --line:#d9ddd8;
+    --spiral:#e0b62a;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+  }
+  .wrap{
+    max-width:1220px;
+    margin:0 auto;
+    padding:24px;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 350px;
+    gap:24px;
+  }
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:18px;
+  }
+  h1{font-size:24px;margin:0 0 6px}
+  .sub{color:var(--muted);margin:0 0 18px;line-height:1.45}
+  svg{width:100%;height:auto;display:block;overflow:visible}
+  .controls h2{font-size:18px;margin:0 0 14px}
+  .row{margin:0 0 15px}
+  .row label{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    font-size:14px;
+    margin-bottom:6px;
+  }
+  input[type=range]{width:100%}
+  .buttons{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  button{
+    border:1px solid var(--line);
+    background:white;
+    color:var(--ink);
+    border-radius:999px;
+    padding:10px 14px;
+    cursor:pointer;
+    font:inherit;
+  }
+  button:hover{background:#f2f3f0}
+  .legend{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin-top:14px;
+    font-size:13px;
+    color:var(--muted);
+  }
+  .badge{
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:8px 10px;
+  }
+  .note{
+    margin-top:14px;
+    font-size:13px;
+    line-height:1.45;
+    color:var(--muted);
+  }
+  .arc-label-adj{
+    font-size:38px;
+    font-weight:800;
+    letter-spacing:.15px;
+    fill:#223029;
+  }
+  .arc-label-noun{
+    font-size:33px;
+    font-weight:600;
+    fill:#52605a;
+  }
+  .wedge{
+    opacity:.70;
+    transition:opacity .18s ease, filter .18s ease;
+    filter:url(#softEdge);
+  }
+  .wedge.min{
+    filter:drop-shadow(0 0 5px rgba(173,81,57,.24));
+  }
+  .wedge.max{
+    filter:drop-shadow(0 0 5px rgba(72,113,69,.22));
+  }
+  @media (max-width:860px){
+    .wrap{grid-template-columns:1fr}
+  }
 </style>
 </head>
-
 <body>
+<div class="wrap">
+  <section class="card">
+    <h1>NCD Pot Plant Playground</h1>
+    <p class="sub">
+      Ranked semi-transparent wedges with subtle radial gradients, a warm glowing spiral beneath them, enlarged labels, and a 10-second centre-out test animation.
+    </p>
 
-<div class="card">
+    <svg id="viz" viewBox="0 0 880 880" role="img" aria-labelledby="title desc">
+      <defs>
+        <filter id="softEdge" x="-5%" y="-5%" width="110%" height="110%">
+          <feGaussianBlur stdDeviation="0.55"/>
+        </filter>
+        <filter id="spiralGlow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="2.2" result="blur"/>
+          <feMerge>
+            <feMergeNode in="blur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+        <filter id="tipGlow" x="-80%" y="-80%" width="260%" height="260%">
+          <feGaussianBlur stdDeviation="4" result="blur"/>
+          <feMerge>
+            <feMergeNode in="blur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+      </defs>
+      <title id="title">NCD Pot Plant prototype</title>
+      <desc id="desc">Eight ranked quality-characteristic wedges and a spiral growing from the centre until it reaches the minimum factor.</desc>
+      <path id="spiralUnder" fill="none" stroke="var(--spiral)" stroke-opacity=".16" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"></path>
+      <path id="spiral" fill="none" stroke="var(--spiral)" stroke-opacity=".86" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" filter="url(#spiralGlow)"></path>
+      <circle id="stopDot" r="8" fill="var(--spiral)" filter="url(#tipGlow)"></circle>
+      <g id="wedges"></g>
+      <g id="labelPaths"></g>
+      <g id="labels"></g>
+    </svg>
 
-<h1>🌱 Pot Plant Playground</h1>
+    <div class="legend">
+      <div class="badge"><strong>Maximum factor</strong><br><span id="maxText"></span></div>
+      <div class="badge"><strong>Minimum factor</strong><br><span id="minText"></span></div>
+    </div>
+  </section>
 
-<svg id="spiral" viewBox="-250 -250 500 500">
-
-    <path
-        id="line"
-        fill="none"
-        stroke="#d8a900"
-        stroke-width="7"
-        stroke-linecap="round"/>
-
-</svg>
-
-<p>
-First GitHub Pages prototype
-</p>
-
+  <aside class="card controls">
+    <h2>Survey scores</h2>
+    <div id="sliders"></div>
+    <div class="buttons">
+      <button id="animateBtn" type="button">Replay spiral</button>
+      <button id="randomBtn" type="button">Random result</button>
+      <button id="closeBtn" type="button">Close scores test</button>
+      <button id="balancedBtn" type="button">Balanced result</button>
+    </div>
+    <p class="note">
+      The score values determine rank only. The ranked radii are deliberately separated by slightly more than one complete spiral turn, guaranteeing that the spiral reaches and stops at the true minimum factor.
+    </p>
+  </aside>
 </div>
 
 <script>
+(() => {
+  const qcs = [
+    { adjective:"Loving", noun:"Relationships" },
+    { adjective:"Empowering", noun:"Leadership" },
+    { adjective:"Effective", noun:"Structures" },
+    { adjective:"Gift-based", noun:"Ministry" },
+    { adjective:"Need-oriented", noun:"Evangelism" },
+    { adjective:"Inspiring", noun:"Worship Service" },
+    { adjective:"Passionate", noun:"Spirituality" },
+    { adjective:"Holistic", noun:"Small Groups" }
+  ];
 
-const turns = 4;
-const maxRadius = 180;
-const points = [];
+  let scores = [78, 67, 59, 52, 43, 71, 62, 74];
 
-for(let t=0;t<turns*Math.PI*2;t+=0.03){
+  // Optional URL configuration:
+  // ?scores=78,67,59,52,43,71,62,74
+  const params = new URLSearchParams(window.location.search);
+  const scoreParam = params.get("scores");
+  if (scoreParam) {
+    const parsed = scoreParam.split(",").map(v => Number(v.trim()));
+    if (
+      parsed.length === 8 &&
+      parsed.every(v => Number.isFinite(v) && v >= 0 && v <= 100)
+    ) {
+      scores = parsed;
+    }
+  }
 
-    const r = maxRadius*(t/(turns*Math.PI*2));
+  const fills = [
+    "#477B39", // 0°
+    "#727145", // 45°
+    "#926550", // 90°
+    "#9A5C5E", // 135°
+    "#786071", // 180°
+    "#526082", // 225°
+    "#436777", // 270°
+    "#44725C"  // 315°
+  ];
 
-    points.push([
-        r*Math.cos(t-Math.PI/2),
-        r*Math.sin(t-Math.PI/2)
-    ]);
-}
+  const svgDefs = document.querySelector("#viz defs");
 
-let d="";
+  function hexToRgb(hex){
+    const h = hex.replace("#","");
+    return {
+      r: parseInt(h.slice(0,2),16),
+      g: parseInt(h.slice(2,4),16),
+      b: parseInt(h.slice(4,6),16)
+    };
+  }
 
-points.forEach((p,i)=>{
+  function mixWithWhite(hex, amount){
+    const {r,g,b} = hexToRgb(hex);
+    const mix = c => Math.round(c + (255-c)*amount);
+    return `rgb(${mix(r)},${mix(g)},${mix(b)})`;
+  }
 
-    d += (i===0?"M":"L")+p[0]+" "+p[1]+" ";
+  function makeGradient(i, base){
+    const grad = document.createElementNS("http://www.w3.org/2000/svg","radialGradient");
+    grad.setAttribute("id",`wedgeGrad${i}`);
+    grad.setAttribute("cx","46%");
+    grad.setAttribute("cy","44%");
+    grad.setAttribute("r","72%");
 
-});
+    const s1 = document.createElementNS("http://www.w3.org/2000/svg","stop");
+    s1.setAttribute("offset","0%");
+    s1.setAttribute("stop-color",mixWithWhite(base,.18));
 
-const path=document.getElementById("line");
+    const s2 = document.createElementNS("http://www.w3.org/2000/svg","stop");
+    s2.setAttribute("offset","58%");
+    s2.setAttribute("stop-color",base);
 
-path.setAttribute("d",d);
+    const s3 = document.createElementNS("http://www.w3.org/2000/svg","stop");
+    s3.setAttribute("offset","100%");
+    s3.setAttribute("stop-color",mixWithWhite(base,.04));
 
-const length=path.getTotalLength();
+    grad.appendChild(s1); grad.appendChild(s2); grad.appendChild(s3);
+    svgDefs.appendChild(grad);
+  }
 
-path.style.strokeDasharray=length;
-path.style.strokeDashoffset=length;
+  fills.forEach((c,i)=>makeGradient(i,c));
 
-path.animate(
-[
-{strokeDashoffset:length},
-{strokeDashoffset:0}
-],
-{
-duration:10000,
-fill:"forwards",
-easing:"linear"
-});
+  const wedgesG = document.getElementById("wedges");
+  const labelPathsG = document.getElementById("labelPaths");
+  const labelsG = document.getElementById("labels");
+  const spiralPath = document.getElementById("spiral");
+  const spiralUnder = document.getElementById("spiralUnder");
+  const stopDot = document.getElementById("stopDot");
+  const sliders = document.getElementById("sliders");
 
+  const cx = 440, cy = 440;
+  const sectorDeg = 45;
+  const startDeg = -112.5; // first wedge centred at 12 o'clock
+
+  // Rank geometry.
+  const minRadius = 108;
+  const rankStep = 36;
+  const maxRadius = minRadius + 7*rankStep;
+
+  // Spiral ring spacing is just under rank spacing.
+  const radialGrowthPerTurn = 33;
+  const b = radialGrowthPerTurn / (2*Math.PI);
+
+  // Very slow centre-out animation.
+  const animationDurationMs = 10000;
+
+  let spiralPoints = [];
+  let animationFrame = null;
+
+  function fullName(i){
+    return `${qcs[i].adjective} ${qcs[i].noun}`;
+  }
+
+  function polar(r, deg){
+    const a = deg * Math.PI / 180;
+    return [cx + r*Math.cos(a), cy + r*Math.sin(a)];
+  }
+
+  function pointPolar(r, theta){
+    return [cx + r*Math.cos(theta), cy + r*Math.sin(theta)];
+  }
+
+  function sectorPath(r, a0, a1){
+    const p1 = polar(r,a0), p2 = polar(r,a1);
+    return [
+      `M ${cx} ${cy}`,
+      `L ${p1[0]} ${p1[1]}`,
+      `A ${r} ${r} 0 0 1 ${p2[0]} ${p2[1]}`,
+      "Z"
+    ].join(" ");
+  }
+
+  function ranksFromScores(values){
+    const order = values
+      .map((v,i)=>({v,i}))
+      .sort((a,b)=> a.v === b.v ? a.i-b.i : a.v-b.v);
+    const ranks = Array(values.length);
+    order.forEach((item,idx)=> ranks[item.i] = idx+1);
+    return ranks;
+  }
+
+  function rankToRadius(rank){
+    return minRadius + (rank-1)*rankStep;
+  }
+
+  function normalizedDegFromTheta(theta){
+    let deg = theta * 180 / Math.PI;
+    return ((deg - startDeg) % 360 + 360) % 360;
+  }
+
+  function sectorIndexForAngle(theta){
+    return Math.floor(normalizedDegFromTheta(theta) / sectorDeg) % 8;
+  }
+
+  function boundaryCrossingTheta(thetaA, thetaB, oldSector, newSector){
+    // Binary-search the exact angular crossing between adjacent wedges.
+    // This avoids ever drawing a chord or "hook" at the end.
+    let lo = thetaA;
+    let hi = thetaB;
+    for(let i=0;i<30;i++){
+      const mid = (lo+hi)/2;
+      if(sectorIndexForAngle(mid) === oldSector){
+        lo = mid;
+      } else {
+        hi = mid;
+      }
+    }
+    return (lo+hi)/2;
+  }
+
+  function arcPath(r, start, end, reverse=false){
+    let a0 = start, a1 = end;
+    if(reverse) [a0,a1] = [a1,a0];
+    const p0 = polar(r,a0), p1 = polar(r,a1);
+    const sweep = reverse ? 0 : 1;
+    return `M ${p0[0]} ${p0[1]} A ${r} ${r} 0 0 ${sweep} ${p1[0]} ${p1[1]}`;
+  }
+
+  function isBottomHalf(midDeg){
+    const d = ((midDeg % 360)+360)%360;
+    return d > 0 && d < 180;
+  }
+
+  function draw(){
+    wedgesG.innerHTML = "";
+    labelPathsG.innerHTML = "";
+    labelsG.innerHTML = "";
+
+    const ranks = ranksFromScores(scores);
+    const minVal = Math.min(...scores);
+    const maxVal = Math.max(...scores);
+    const minIdx = scores.indexOf(minVal);
+    const maxIdx = scores.indexOf(maxVal);
+
+    scores.forEach((score,i)=>{
+      const radius = rankToRadius(ranks[i]);
+      const a0 = startDeg + i*sectorDeg;
+      const a1 = a0 + sectorDeg;
+      const mid = a0 + sectorDeg/2;
+
+      const wedge = document.createElementNS("http://www.w3.org/2000/svg","path");
+      wedge.setAttribute("d", sectorPath(radius,a0,a1));
+      wedge.setAttribute("fill",`url(#wedgeGrad${i})`);
+      wedge.setAttribute("class",`wedge${i===minIdx?" min":""}${i===maxIdx?" max":""}`);
+      wedgesG.appendChild(wedge);
+
+      const bottom = isBottomHalf(mid);
+      const reverse = bottom;
+
+      const innerLabelR = maxRadius + 26;
+      const outerLabelR = maxRadius + 52;
+
+      // Adjective visually first, noun second.
+      const adjR = bottom ? innerLabelR : outerLabelR;
+      const nounR = bottom ? outerLabelR : innerLabelR;
+
+      const arcStart = a0 + 3.5;
+      const arcEnd = a1 - 3.5;
+
+      const adjArc = document.createElementNS("http://www.w3.org/2000/svg","path");
+      const nounArc = document.createElementNS("http://www.w3.org/2000/svg","path");
+      const adjId = `adjArc${i}`, nounId = `nounArc${i}`;
+      adjArc.setAttribute("id",adjId);
+      nounArc.setAttribute("id",nounId);
+      adjArc.setAttribute("d",arcPath(adjR,arcStart,arcEnd,reverse));
+      nounArc.setAttribute("d",arcPath(nounR,arcStart,arcEnd,reverse));
+      adjArc.setAttribute("fill","none");
+      adjArc.setAttribute("stroke","none");
+      nounArc.setAttribute("fill","none");
+      nounArc.setAttribute("stroke","none");
+      labelPathsG.appendChild(adjArc);
+      labelPathsG.appendChild(nounArc);
+
+      const adjText = document.createElementNS("http://www.w3.org/2000/svg","text");
+      adjText.setAttribute("class","arc-label-adj");
+      const adjTP = document.createElementNS("http://www.w3.org/2000/svg","textPath");
+      adjTP.setAttribute("href",`#${adjId}`);
+      adjTP.setAttribute("startOffset","50%");
+      adjTP.setAttribute("text-anchor","middle");
+      adjTP.textContent=qcs[i].adjective;
+      adjText.appendChild(adjTP);
+
+      const nounText = document.createElementNS("http://www.w3.org/2000/svg","text");
+      nounText.setAttribute("class","arc-label-noun");
+      const nounTP = document.createElementNS("http://www.w3.org/2000/svg","textPath");
+      nounTP.setAttribute("href",`#${nounId}`);
+      nounTP.setAttribute("startOffset","50%");
+      nounTP.setAttribute("text-anchor","middle");
+      nounTP.textContent=qcs[i].noun;
+      nounText.appendChild(nounTP);
+
+      labelsG.appendChild(adjText);
+      labelsG.appendChild(nounText);
+    });
+
+    document.getElementById("minText").textContent = `${fullName(minIdx)} — ${minVal}`;
+    document.getElementById("maxText").textContent = `${fullName(maxIdx)} — ${maxVal}`;
+
+    return {ranks,minIdx,maxIdx};
+  }
+
+  function buildSpiralPoints(ranks, minIdx){
+    // One continuous Archimedean spiral from the exact centre.
+    //
+    // When the moving tip is about to CROSS INTO the minimum-factor wedge
+    // on a revolution where the spiral radius is already larger than that
+    // wedge's radius, the path ends exactly at that radial wedge boundary.
+    // It never follows the minimum wedge's curved outer edge.
+    const theta0 = -Math.PI/2;
+    const thetaMax = theta0 + Math.PI*60;
+    const step = 0.0045;
+
+    const pts = [[cx,cy]];
+    const minBoundary = rankToRadius(ranks[minIdx]);
+
+    let prevTheta = theta0;
+    let prevSector = sectorIndexForAngle(prevTheta);
+
+    for(let theta=theta0 + step; theta<=thetaMax; theta+=step){
+      const currentSector = sectorIndexForAngle(theta);
+
+      if(currentSector !== prevSector){
+        const crossingTheta = boundaryCrossingTheta(
+          prevTheta, theta, prevSector, currentSector
+        );
+        const crossingR = b*(crossingTheta-theta0);
+
+        // If the next wedge is the minimum factor and the spiral has
+        // outgrown its available radius, stop exactly on the radial boundary.
+        if(currentSector === minIdx && crossingR > minBoundary){
+          pts.push(pointPolar(crossingR, crossingTheta));
+          return pts;
+        }
+      }
+
+      const r = b*(theta-theta0);
+      pts.push(pointPolar(r,theta));
+
+      prevTheta = theta;
+      prevSector = currentSector;
+    }
+
+    return pts;
+  }
+
+  function pointsToPath(points, count=points.length){
+    const n = Math.max(1, Math.min(count, points.length));
+    let d = `M ${points[0][0].toFixed(2)} ${points[0][1].toFixed(2)}`;
+    for(let i=1;i<n;i++){
+      d += ` L ${points[i][0].toFixed(2)} ${points[i][1].toFixed(2)}`;
+    }
+    return d;
+  }
+
+  function setFullSpiral(){
+    const fullD = pointsToPath(spiralPoints);
+    spiralPath.setAttribute("d", fullD);
+    spiralUnder.setAttribute("d", fullD);
+    const end = spiralPoints[spiralPoints.length-1];
+    stopDot.setAttribute("cx",end[0]);
+    stopDot.setAttribute("cy",end[1]);
+    stopDot.style.opacity = 1;
+  }
+
+  function animateSpiral(){
+    if(animationFrame) cancelAnimationFrame(animationFrame);
+
+    stopDot.setAttribute("cx",cx);
+    stopDot.setAttribute("cy",cy);
+    stopDot.style.opacity = .95;
+    spiralPath.setAttribute("d", `M ${cx} ${cy}`);
+    spiralUnder.setAttribute("d", `M ${cx} ${cy}`);
+
+    const startTime = performance.now();
+
+    function frame(now){
+      const t = Math.min(1, (now-startTime)/animationDurationMs);
+
+      // Gentle linear-ish progression. Slight ease-in, but keeps the moving
+      // tip visually obvious rather than racing through later turns.
+      // Ease-out so the growing tip visibly slows as it approaches the limiting factor.
+      const progress = 1 - Math.pow(1 - t, 3.2);
+      const count = Math.max(2, Math.floor(progress*(spiralPoints.length-1))+1);
+
+      const partialD = pointsToPath(spiralPoints,count);
+      spiralPath.setAttribute("d", partialD);
+      spiralUnder.setAttribute("d", partialD);
+
+      const tip = spiralPoints[count-1];
+      stopDot.setAttribute("cx",tip[0]);
+      stopDot.setAttribute("cy",tip[1]);
+      stopDot.style.opacity = t < 1 ? .95 : 1;
+
+      if(t < 1){
+        animationFrame = requestAnimationFrame(frame);
+      } else {
+        const end = spiralPoints[spiralPoints.length-1];
+        stopDot.setAttribute("cx",end[0]);
+        stopDot.setAttribute("cy",end[1]);
+        stopDot.style.opacity = 1;
+        animationFrame = null;
+      }
+    }
+
+    animationFrame = requestAnimationFrame(frame);
+  }
+
+  function render(animate=true){
+    const {ranks,minIdx} = draw();
+    spiralPoints = buildSpiralPoints(ranks,minIdx);
+    if(animate) animateSpiral();
+    else setFullSpiral();
+  }
+
+  function buildControls(){
+    sliders.innerHTML="";
+    qcs.forEach((qc,i)=>{
+      const row=document.createElement("div");
+      row.className="row";
+      row.innerHTML=`
+        <label>
+          <span>${qc.adjective} ${qc.noun}</span>
+          <strong id="value${i}">${scores[i]}</strong>
+        </label>
+        <input aria-label="${qc.adjective} ${qc.noun}" type="range" min="0" max="100" value="${scores[i]}">
+      `;
+      const input=row.querySelector("input");
+      input.addEventListener("input",e=>{
+        scores[i]=Number(e.target.value);
+        document.getElementById(`value${i}`).textContent=scores[i];
+        render(false);
+      });
+      input.addEventListener("change",()=>render(true));
+      sliders.appendChild(row);
+    });
+  }
+
+  function syncControls(){
+    [...sliders.querySelectorAll("input")].forEach((input,i)=>{
+      input.value=scores[i];
+      document.getElementById(`value${i}`).textContent=scores[i];
+    });
+  }
+
+  document.getElementById("animateBtn").addEventListener("click",animateSpiral);
+
+  document.getElementById("randomBtn").addEventListener("click",()=>{
+    scores=scores.map(()=>Math.round(35+Math.random()*55));
+    syncControls();
+    render(true);
+  });
+
+  document.getElementById("closeBtn").addEventListener("click",()=>{
+    scores=[50,51,52,53,54,55,56,57];
+    syncControls();
+    render(true);
+  });
+
+  document.getElementById("balancedBtn").addEventListener("click",()=>{
+    scores=[71,69,72,68,70,73,67,74];
+    syncControls();
+    render(true);
+  });
+
+  buildControls();
+  render(true);
+})();
 </script>
-
 </body>
 </html>
