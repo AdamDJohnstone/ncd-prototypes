@@ -1,1 +1,185 @@
+:root{
+  --bg:#f7f5ef;
+  --panel:#ffffff;
+  --ink:#24312b;
+  --muted:#68736d;
+  --line:#d9ddd8;
+  --spiral:#e0b62a;
+}
+
+*{box-sizing:border-box}
+
+html,body{
+  margin:0;
+  min-height:100%;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+}
+
+body.playground{
+  min-height:100vh;
+}
+
+.wrap{
+  max-width:1220px;
+  margin:0 auto;
+  padding:24px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 350px;
+  gap:24px;
+}
+
+.card{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:18px;
+}
+
+h1{
+  font-size:24px;
+  margin:0 0 6px;
+}
+
+.sub{
+  color:var(--muted);
+  margin:0 0 18px;
+  line-height:1.45;
+}
+
+.pot-plant-stage{
+  width:100%;
+}
+
+svg{
+  width:100%;
+  height:auto;
+  display:block;
+  overflow:visible;
+}
+
+.controls h2{
+  font-size:18px;
+  margin:0 0 14px;
+}
+
+.row{
+  margin:0 0 15px;
+}
+
+.row label{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  font-size:14px;
+  margin-bottom:6px;
+}
+
+input[type=range]{
+  width:100%;
+}
+
+.buttons{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:18px;
+}
+
+button{
+  border:1px solid var(--line);
+  background:white;
+  color:var(--ink);
+  border-radius:999px;
+  padding:10px 14px;
+  cursor:pointer;
+  font:inherit;
+}
+
+button:hover{
+  background:#f2f3f0;
+}
+
+.legend{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:14px;
+  font-size:13px;
+  color:var(--muted);
+}
+
+.badge{
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:8px 10px;
+}
+
+.note{
+  margin-top:14px;
+  font-size:13px;
+  line-height:1.45;
+  color:var(--muted);
+}
+
+.arc-label-adj{
+  font-size:38px;
+  font-weight:800;
+  letter-spacing:.15px;
+  fill:#223029;
+}
+
+.arc-label-noun{
+  font-size:33px;
+  font-weight:600;
+  fill:#52605a;
+}
+
+.wedge{
+  opacity:.70;
+  transition:opacity .18s ease, filter .18s ease;
+  filter:url(#softEdge);
+}
+
+.wedge.min{
+  filter:drop-shadow(0 0 5px rgba(173,81,57,.24));
+}
+
+.wedge.max{
+  filter:drop-shadow(0 0 5px rgba(72,113,69,.22));
+}
+
+/* Clean iframe/view mode */
+html.viewer-html,
+body.viewer{
+  width:100%;
+  height:100%;
+  min-height:0;
+  background:transparent;
+  overflow:hidden;
+}
+
+body.viewer{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.viewer .pot-plant-view{
+  width:min(100vw,100vh);
+  height:min(100vw,100vh);
+  padding:0;
+}
+
+.viewer svg{
+  width:100%;
+  height:100%;
+}
+
+@media (max-width:860px){
+  .wrap{
+    grid-template-columns:1fr;
+  }
+}
 
