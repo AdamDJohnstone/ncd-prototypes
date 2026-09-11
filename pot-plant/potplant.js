@@ -33,14 +33,95 @@
   ];
 
   const DIAGRAM_QCS = [
-    { key:"LR", adjective:"Loving", noun:"Relationships" },
-    { key:"EL", adjective:"Empowering", noun:"Leadership" },
-    { key:"ES", adjective:"Effective", noun:"Structures" },
-    { key:"GBM", adjective:"Gift-based", noun:"Ministry" },
-    { key:"NOE", adjective:"Need-oriented", noun:"Evangelism" },
-    { key:"IWS", adjective:"Inspiring", noun:"Worship Service" },
-    { key:"PS", adjective:"Passionate", noun:"Spirituality" },
-    { key:"HSG", adjective:"Holistic", noun:"Small Groups" }
+    
+    {
+      key:"LR",
+      adjective:"Loving",
+      noun:"Relationships",
+  
+      heartQuestion:"Do I really belong here?",
+  
+      description:
+        "Loving relationships create a community where people experience genuine acceptance, care and belonging."
+    },
+  
+    {
+      key:"EL",
+      adjective:"Empowering",
+      noun:"Leadership",
+  
+      heartQuestion:"Do you really believe in me?",
+  
+      description:
+        "Empowering leaders recognise people's God-given potential and help them grow into meaningful responsibility."
+    },
+  
+    {
+      key:"ES",
+      adjective:"Effective",
+      noun:"Structures",
+  
+      heartQuestion:"Do I really have room to grow?",
+  
+      description:
+        "Effective structures create the freedom, clarity and support people need to grow and contribute fruitfully."
+    },
+  
+    {
+      key:"GBM",
+      adjective:"Gift-based",
+      noun:"Ministry",
+  
+      heartQuestion:"Do I really have something to contribute?",
+  
+      description:
+        "Gift-based ministry helps people discover how God has uniquely equipped them and find meaningful ways to contribute."
+    },
+  
+    {
+      key:"NOE",
+      adjective:"Need-oriented",
+      noun:"Evangelism",
+  
+      heartQuestion:"Do you really care about me?",
+  
+      description:
+        "Need-oriented evangelism begins by genuinely seeing and responding to the people God has placed around us."
+    },
+  
+    {
+      key:"IWS",
+      adjective:"Inspiring",
+      noun:"Worship Service",
+  
+      heartQuestion:"Do I really meet God here?",
+  
+      description:
+        "Inspiring worship helps people encounter God in ways that renew faith, hope and willingness to respond."
+    },
+  
+    {
+      key:"PS",
+      adjective:"Passionate",
+      noun:"Spirituality",
+  
+      heartQuestion:"Do I really love God?",
+  
+      description:
+        "Passionate spirituality grows where faith is lived from a genuine and life-giving relationship with God."
+    },
+  
+    {
+      key:"HSG",
+      adjective:"Holistic",
+      noun:"Small Groups",
+  
+      heartQuestion:"Do you really know me?",
+  
+      description:
+        "Holistic small groups create spaces where people become genuinely known, supported and challenged to grow."
+    }
+  
   ];
 
   const DEFAULT_INPUT_SCORES = [67,52,62,59,71,74,43,78];
@@ -253,6 +334,120 @@
     return d > 0 && d < 180;
   }
 
+/* =========================================================
+   QUALITY CHARACTERISTIC CARD
+   ========================================================= */
+
+const qcCard =
+  document.getElementById("qcCard");
+
+const qcCardName =
+  document.getElementById("qcCardName");
+
+const qcCardQuestion =
+  document.getElementById("qcCardQuestion");
+
+const qcCardDescription =
+  document.getElementById("qcCardDescription");
+
+const qcCardClose =
+  document.getElementById("qcCardClose");
+
+
+function openQcCard(index){
+
+  if(!qcCard) return;
+
+  const qc = DIAGRAM_QCS[index];
+
+  if(qcCardName){
+    qcCardName.textContent =
+      fullName(qc);
+  }
+
+  if(qcCardQuestion){
+    qcCardQuestion.textContent =
+      qc.heartQuestion;
+  }
+
+  if(qcCardDescription){
+    qcCardDescription.textContent =
+      qc.description;
+  }
+
+  qcCard.classList.add("is-open");
+
+  qcCard.setAttribute(
+    "aria-hidden",
+    "false"
+  );
+}
+
+
+function closeQcCard(){
+
+  if(!qcCard) return;
+
+  qcCard.classList.remove("is-open");
+
+  qcCard.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+}
+
+
+if(qcCardClose){
+
+  qcCardClose.addEventListener(
+    "click",
+    event => {
+
+      event.stopPropagation();
+
+      closeQcCard();
+    }
+  );
+
+}
+
+
+/*
+  Clicking somewhere else in the component
+  gently dismisses the card.
+*/
+
+document.addEventListener(
+  "click",
+  event => {
+
+    if(
+      qcCard &&
+      qcCard.classList.contains("is-open") &&
+      !qcCard.contains(event.target)
+    ){
+      closeQcCard();
+    }
+
+  }
+);
+
+
+/*
+  Escape also closes it.
+*/
+
+document.addEventListener(
+  "keydown",
+  event => {
+
+    if(event.key === "Escape"){
+      closeQcCard();
+    }
+
+  }
+);
+  
   function draw(){
     wedgesG.innerHTML = "";
     labelPathsG.innerHTML = "";
@@ -279,6 +474,27 @@
         "class",
         `wedge${i===minIdx ? " min" : ""}${i===maxIdx ? " max" : ""}`
       );
+      wedge.setAttribute("data-qc-index",i);
+      wedge.setAttribute("tabindex","0");
+      wedge.setAttribute("role","button");
+      wedge.setAttribute(
+        "aria-label",
+        `${fullName(DIAGRAM_QCS[i])}: ${DIAGRAM_QCS[i].heartQuestion}`
+      );
+      
+      wedge.addEventListener("click",event => {
+        event.stopPropagation();
+        openQcCard(i);
+      });
+      
+      wedge.addEventListener("keydown",event => {
+      
+        if(event.key === "Enter" || event.key === " "){
+          event.preventDefault();
+          openQcCard(i);
+        }
+      
+      });
       wedgesG.appendChild(wedge);
 
       const bottom = isBottomHalf(mid);
@@ -332,7 +548,28 @@
       labelPathsG.appendChild(nounArc);
 
       const adjText = document.createElementNS("http://www.w3.org/2000/svg","text");
-      adjText.setAttribute("class","arc-label-adj");
+      adjText.setAttribute(
+        "class",
+        "arc-label-adj qc-clickable"
+      );
+      
+      adjText.setAttribute("data-qc-index",i);
+      adjText.setAttribute("tabindex","0");
+      adjText.setAttribute("role","button");
+      
+      adjText.addEventListener("click",event => {
+        event.stopPropagation();
+        openQcCard(i);
+      });
+      
+      adjText.addEventListener("keydown",event => {
+      
+        if(event.key === "Enter" || event.key === " "){
+          event.preventDefault();
+          openQcCard(i);
+        }
+      
+      });
 
       const adjTP = document.createElementNS("http://www.w3.org/2000/svg","textPath");
       adjTP.setAttribute("href",`#${adjId}`);
@@ -342,7 +579,28 @@
       adjText.appendChild(adjTP);
 
       const nounText = document.createElementNS("http://www.w3.org/2000/svg","text");
-      nounText.setAttribute("class","arc-label-noun");
+      nounText.setAttribute(
+        "class",
+        "arc-label-noun qc-clickable"
+      );
+      
+      nounText.setAttribute("data-qc-index",i);
+      nounText.setAttribute("tabindex","0");
+      nounText.setAttribute("role","button");
+      
+      nounText.addEventListener("click",event => {
+        event.stopPropagation();
+        openQcCard(i);
+      });
+      
+      nounText.addEventListener("keydown",event => {
+      
+        if(event.key === "Enter" || event.key === " "){
+          event.preventDefault();
+          openQcCard(i);
+        }
+      
+      });
 
       const nounTP = document.createElementNS("http://www.w3.org/2000/svg","textPath");
       nounTP.setAttribute("href",`#${nounId}`);
