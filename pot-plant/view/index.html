@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="viewer-html">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -8,10 +8,66 @@
 </head>
 
 <body class="viewer">
-
   <main class="pot-plant-view">
-    <svg id="viz" viewBox="0 0 880 880">
-      ...
+    <svg id="viz" viewBox="0 0 880 880" role="img" aria-labelledby="title desc">
+      <defs>
+        <filter id="softEdge" x="-5%" y="-5%" width="110%" height="110%">
+          <feGaussianBlur stdDeviation="0.55"/>
+        </filter>
+
+        <filter id="spiralGlow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="2.2" result="blur"/>
+          <feMerge>
+            <feMergeNode in="blur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+
+        <filter id="tipGlow" x="-80%" y="-80%" width="260%" height="260%">
+          <feGaussianBlur stdDeviation="4" result="blur"/>
+          <feMerge>
+            <feMergeNode in="blur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+      </defs>
+
+      <title id="title">NCD Pot Plant</title>
+      <desc id="desc">
+        Eight ranked quality-characteristic wedges and a spiral growing from the centre until it reaches the minimum factor.
+      </desc>
+
+      <path
+        id="spiralUnder"
+        fill="none"
+        stroke="var(--spiral)"
+        stroke-opacity=".16"
+        stroke-width="12"
+        stroke-linecap="round"
+        stroke-linejoin="round">
+      </path>
+
+      <path
+        id="spiral"
+        fill="none"
+        stroke="var(--spiral)"
+        stroke-opacity=".86"
+        stroke-width="8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        filter="url(#spiralGlow)">
+      </path>
+
+      <circle
+        id="stopDot"
+        r="8"
+        fill="var(--spiral)"
+        filter="url(#tipGlow)">
+      </circle>
+
+      <g id="wedges"></g>
+      <g id="labelPaths"></g>
+      <g id="labels"></g>
     </svg>
   </main>
 
