@@ -73,10 +73,33 @@
             filter="url(#tipGlow)">
           </circle>
 
-          <g id="wedges"></g>
+                    <g id="wedges"></g>
           <g id="labelPaths"></g>
           <g id="labels"></g>
         </svg>
+
+        <section
+          id="qcCard"
+          class="qc-card"
+          aria-hidden="true"
+          aria-live="polite"
+        >
+          <button
+            id="qcCardClose"
+            class="qc-card-close"
+            type="button"
+            aria-label="Close"
+          >
+            ×
+          </button>
+
+          <div class="qc-card-content">
+            <div id="qcCardName" class="qc-card-name"></div>
+            <div id="qcCardQuestion" class="qc-card-question"></div>
+            <p id="qcCardDescription" class="qc-card-description"></p>
+          </div>
+        </section>
+
       </div>
 
       <div class="legend">
