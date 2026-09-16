@@ -586,11 +586,18 @@ document.addEventListener(
         const labelScale =
           language.labelScale ?? 1;
         
-        text.style.transformBox = "fill-box";
-        text.style.transformOrigin = "center";
-        text.style.transform = `scale(${labelScale})`;
+        const baseFontSize =
+          line.emphasis ? 38 : 31;
         
-        text.setAttribute("data-qc-index", i);
+        /*
+          Scale the typography itself, not the SVG text geometry.
+          Geometric transforms on text/textPath render differently
+          across Safari and Chrome and can move labels off their arcs.
+        */
+        text.setAttribute(
+          "font-size",
+          String(baseFontSize * labelScale)
+        );
         
         text.setAttribute("data-qc-index", i);
         text.setAttribute("tabindex", "0");
