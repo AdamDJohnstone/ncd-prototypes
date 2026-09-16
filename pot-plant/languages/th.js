@@ -10,7 +10,7 @@ if (new URLSearchParams(window.location.search).get("lang") === "th") {
 window.NCD_POT_PLANT_LANGUAGES.th = {
   code: "th",
   name: "ไทย",
-  labelScale: 0.62,
+  labelScale: 0.6,
   labelLanguage: "th",
   labelFontFamily: 'Tahoma, "Noto Sans Thai", "Leelawadee UI", sans-serif',
   labelLetterSpacing: 0,
