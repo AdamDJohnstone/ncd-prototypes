@@ -66,6 +66,7 @@ window.NCD_POT_PLANT_LANGUAGES.test = {
 
   qcs: {
     LR: {
+      name: "TEST Loving Relationships",
       lines: [
         { text: "Relationships TEST", emphasis: false },
         { text: "Loving TEST", emphasis: true }
