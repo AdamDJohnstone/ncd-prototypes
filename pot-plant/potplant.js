@@ -582,12 +582,15 @@ document.addEventListener(
               : "arc-label-noun"
           } qc-clickable`
         );
-
+        
         const labelScale =
           language.labelScale ?? 1;
         
-        text.style.fontSize =
-          `${labelScale}em`;
+        text.style.transformBox = "fill-box";
+        text.style.transformOrigin = "center";
+        text.style.transform = `scale(${labelScale})`;
+        
+        text.setAttribute("data-qc-index", i);
         
         text.setAttribute("data-qc-index", i);
         text.setAttribute("tabindex", "0");
