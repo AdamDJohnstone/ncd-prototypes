@@ -582,7 +582,13 @@ document.addEventListener(
               : "arc-label-noun"
           } qc-clickable`
         );
-      
+
+        const labelScale =
+          language.labelScale ?? 1;
+        
+        text.style.fontSize =
+          `${labelScale}em`;
+        
         text.setAttribute("data-qc-index", i);
         text.setAttribute("tabindex", "0");
         text.setAttribute("role", "button");
