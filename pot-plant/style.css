@@ -124,14 +124,14 @@ button:hover{
 }
 
 .arc-label-adj{
-  font-size:38px;
+  font-size:calc(38px * var(--label-scale, 1));
   font-weight:800;
   letter-spacing:.15px;
   fill:#223029;
 }
 
 .arc-label-noun{
-  font-size:31px;
+  font-size:calc(31px * var(--label-scale, 1));
   font-weight:600;
   fill:#52605a;
 }
