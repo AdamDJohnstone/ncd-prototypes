@@ -492,40 +492,56 @@ document.addEventListener(
       const arcEnd = a1 - 3.5;
       
       const qc = DIAGRAM_QCS[i];
-      const lineRadii = [line1R, line2R];
       
-      qc.lines.forEach((line, lineIndex) => {
-      
-        const radius =
-          lineRadii[lineIndex] ??
-          (line1R + lineIndex * labelLineGap);
-      
-        const arc =
-          document.createElementNS(
-            "http://www.w3.org/2000/svg",
-            "path"
-          );
-      
-        const arcId =
-          `labelArc${i}_${lineIndex}`;
-      
-        arc.setAttribute("id", arcId);
-      
-        arc.setAttribute(
-          "d",
-          arcPath(
-            radius,
-            arcStart,
-            arcEnd,
-            reverse
-          )
+      const line1Arc =
+        document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "path"
         );
       
-        arc.setAttribute("fill", "none");
-        arc.setAttribute("stroke", "none");
+      const line2Arc =
+        document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "path"
+        );
       
-        labelPathsG.appendChild(arc);
+      const line1Id = `line1Arc${i}`;
+      const line2Id = `line2Arc${i}`;
       
+      line1Arc.setAttribute("id", line1Id);
+      line2Arc.setAttribute("id", line2Id);
+      
+      line1Arc.setAttribute(
+        "d",
+        arcPath(line1R, arcStart, arcEnd, reverse)
+      );
+      
+      line2Arc.setAttribute(
+        "d",
+        arcPath(line2R, arcStart, arcEnd, reverse)
+      );
+      
+      line1Arc.setAttribute("fill", "none");
+      line1Arc.setAttribute("stroke", "none");
+      
+      line2Arc.setAttribute("fill", "none");
+      line2Arc.setAttribute("stroke", "none");
+      
+      labelPathsG.appendChild(line1Arc);
+      labelPathsG.appendChild(line2Arc);
+      
+      
+      /*
+        Create one curved label line.
+      
+        The translation file determines:
+        - the text
+        - whether this line carries emphasis
+      
+        The diagram determines:
+        - which concentric circle the line occupies
+      */
+      function addLabelLine(line, arcId){
       
         const text =
           document.createElementNS(
@@ -542,61 +558,26 @@ document.addEventListener(
           } qc-clickable`
         );
       
-        text.setAttribute(
-          "data-qc-index",
-          i
-        );
+        text.setAttribute("data-qc-index", i);
+        text.setAttribute("tabindex", "0");
+        text.setAttribute("role", "button");
       
-        text.setAttribute(
-          "tabindex",
-          "0"
-        );
+        text.addEventListener("click", event => {
+          event.stopPropagation();
+          openQcCard(i);
+        });
       
-        text.setAttribute(
-          "role",
-          "button"
-        );
+        text.addEventListener("keydown", event => {
       
-        /*
-          Optional per-language adjustment.
-      
-          Most translations will remain at 1.
-          A longer translated QC can use, for example,
-          labelScale: 0.92 in its language file.
-        */
-        const labelScale =
-          Number(qc.labelScale) || 1;
-      
-        text.style.fontSize =
-          `${labelScale}em`;
-      
-      
-        text.addEventListener(
-          "click",
-          event => {
-      
-            event.stopPropagation();
-      
+          if(
+            event.key === "Enter" ||
+            event.key === " "
+          ){
+            event.preventDefault();
             openQcCard(i);
           }
-        );
       
-      
-        text.addEventListener(
-          "keydown",
-          event => {
-      
-            if(
-              event.key === "Enter" ||
-              event.key === " "
-            ){
-              event.preventDefault();
-      
-              openQcCard(i);
-            }
-          }
-        );
-      
+        });
       
         const textPath =
           document.createElementNS(
@@ -619,13 +600,16 @@ document.addEventListener(
           "middle"
         );
       
-        textPath.textContent =
-          line.text;
+        textPath.textContent = line.text;
       
         text.appendChild(textPath);
       
         labelsG.appendChild(text);
-      });
+      }
+      
+      
+      addLabelLine(qc.lines[0], line1Id);
+      addLabelLine(qc.lines[1], line2Id);
 
       const adjText = document.createElementNS("http://www.w3.org/2000/svg","text");
       adjText.setAttribute(
