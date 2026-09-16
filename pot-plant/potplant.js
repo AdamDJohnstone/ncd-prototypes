@@ -129,9 +129,7 @@
   let animationFrame = null;
 
   function fullName(qc){
-    return qc.lines
-      .map(line => line.text)
-      .join(" ");
+    return qc.name;
   }
 
   function applyInterfaceLanguage(){
