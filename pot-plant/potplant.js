@@ -21,8 +21,17 @@
     Holistic Small Groups
   */
 
-  const LANGUAGE_CODE = "en";
-
+  const params =
+    new URLSearchParams(window.location.search);
+  
+  const requestedLanguage =
+    params.get("lang") || "en";
+  
+  const LANGUAGE_CODE =
+    window.NCD_POT_PLANT_LANGUAGES?.[requestedLanguage]
+      ? requestedLanguage
+      : "en";
+  
   const language =
     window.NCD_POT_PLANT_LANGUAGES?.[LANGUAGE_CODE];
   
