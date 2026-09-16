@@ -856,6 +856,28 @@ document.addEventListener(
     });
   }
 
+  const languageSelect =
+    document.getElementById("languageSelect");
+  
+  if(languageSelect){
+  
+    languageSelect.value = LANGUAGE_CODE;
+  
+    languageSelect.addEventListener("change", event => {
+  
+      const newLanguage =
+        event.target.value;
+  
+      const newParams =
+        new URLSearchParams(window.location.search);
+  
+      newParams.set("lang", newLanguage);
+  
+      window.location.search =
+        newParams.toString();
+    });
+  }
+  
   applyInterfaceLanguage();
   buildControls();
   syncControls();
