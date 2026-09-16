@@ -125,6 +125,24 @@
       .join(" ");
   }
 
+  function applyInterfaceLanguage(){
+    document
+      .querySelectorAll("[data-i18n]")
+      .forEach(element => {
+  
+        const key =
+          element.getAttribute("data-i18n");
+  
+        const value =
+          language.interface[key];
+  
+        if(value !== undefined){
+          element.textContent = value;
+        }
+  
+      });
+  }
+  
   function inputScoresToMap(scores){
     const map = {};
     INPUT_QCS.forEach((qc,i) => {
@@ -829,6 +847,7 @@ document.addEventListener(
     });
   }
 
+  applyInterfaceLanguage();
   buildControls();
   syncControls();
   
@@ -964,11 +983,11 @@ document.addEventListener(
               growBtn.querySelector(".grow-label");
   
             if(icon){
-              icon.textContent = "↻";
+              icon.textContent = "🌱";
             }
   
             if(label){
-              label.textContent = "🌱 Watch again";
+              label.textContent = language.interface.watchAgain;
             }
   
             growBtn.classList.add("is-replay");
