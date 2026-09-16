@@ -21,108 +21,61 @@
     Holistic Small Groups
   */
 
-  const INPUT_QCS = [
-    { key:"EL", adjective:"Empowering", noun:"Leadership" },
-    { key:"GBM", adjective:"Gift-based", noun:"Ministry" },
-    { key:"PS", adjective:"Passionate", noun:"Spirituality" },
-    { key:"ES", adjective:"Effective", noun:"Structures" },
-    { key:"IWS", adjective:"Inspiring", noun:"Worship Service" },
-    { key:"HSG", adjective:"Holistic", noun:"Small Groups" },
-    { key:"NOE", adjective:"Need-oriented", noun:"Evangelism" },
-    { key:"LR", adjective:"Loving", noun:"Relationships" }
-  ];
+  const LANGUAGE_CODE = "en";
 
-  const DIAGRAM_QCS = [
-    
-    {
-      key:"LR",
-      adjective:"Loving",
-      noun:"Relationships",
+  const language =
+    window.NCD_POT_PLANT_LANGUAGES?.[LANGUAGE_CODE];
   
-      heartQuestion:"Do I really belong here?",
+  if (!language) {
+    console.error(
+      `NCD Pot Plant language "${LANGUAGE_CODE}" could not be loaded.`
+    );
+    return;
+  }
   
-      description:
-        "Loving relationships create a community where people experience genuine acceptance, care and belonging."
-    },
+  /*
+    The keys below are structural, not translated.
   
-    {
-      key:"EL",
-      adjective:"Empowering",
-      noun:"Leadership",
-  
-      heartQuestion:"Do you really believe in me?",
-  
-      description:
-        "Empowering leaders recognise people's God-given potential and help them grow into meaningful responsibility."
-    },
-  
-    {
-      key:"ES",
-      adjective:"Effective",
-      noun:"Structures",
-  
-      heartQuestion:"Do I really have room to grow?",
-  
-      description:
-        "Effective structures create the freedom, clarity and support people need to grow and contribute fruitfully."
-    },
-  
-    {
-      key:"GBM",
-      adjective:"Gift-based",
-      noun:"Ministry",
-  
-      heartQuestion:"Do I really have something to contribute?",
-  
-      description:
-        "Gift-based ministry helps people discover how God has uniquely equipped them and find meaningful ways to contribute."
-    },
-  
-    {
-      key:"NOE",
-      adjective:"Need-oriented",
-      noun:"Evangelism",
-  
-      heartQuestion:"Do you really care about me?",
-  
-      description:
-        "Need-oriented evangelism begins by genuinely seeing and responding to the people God has placed around us."
-    },
-  
-    {
-      key:"IWS",
-      adjective:"Inspiring",
-      noun:"Worship Service",
-  
-      heartQuestion:"Do I really meet God here?",
-  
-      description:
-        "Inspiring worship helps people encounter God in ways that renew faith, hope and willingness to respond."
-    },
-  
-    {
-      key:"PS",
-      adjective:"Passionate",
-      noun:"Spirituality",
-  
-      heartQuestion:"Do I really trust God?",
-  
-      description:
-        "Passionate spirituality grows where faith is lived from a genuine and life-giving relationship with God."
-    },
-  
-    {
-      key:"HSG",
-      adjective:"Holistic",
-      noun:"Small Groups",
-  
-      heartQuestion:"Do you really know me?",
-  
-      description:
-        "Holistic small groups create spaces where people become genuinely known, supported and challenged to grow."
-    }
-  
+    INPUT ORDER
+    Used by sliders and ?scores=
+  */
+  const INPUT_QC_KEYS = [
+    "EL",
+    "GBM",
+    "PS",
+    "ES",
+    "IWS",
+    "HSG",
+    "NOE",
+    "LR"
   ];
+  
+  /*
+    DIAGRAM ORDER
+    Fixed clockwise from top centre.
+  */
+  const DIAGRAM_QC_KEYS = [
+    "LR",
+    "EL",
+    "ES",
+    "GBM",
+    "NOE",
+    "IWS",
+    "PS",
+    "HSG"
+  ];
+  
+  const INPUT_QCS =
+    INPUT_QC_KEYS.map(key => ({
+      key,
+      ...language.qcs[key]
+    }));
+  
+  const DIAGRAM_QCS =
+    DIAGRAM_QC_KEYS.map(key => ({
+      key,
+      ...language.qcs[key]
+    }));
 
   const DEFAULT_INPUT_SCORES = [67,52,62,59,71,74,43,78];
 
@@ -167,7 +120,9 @@
   let animationFrame = null;
 
   function fullName(qc){
-    return `${qc.adjective} ${qc.noun}`;
+    return qc.lines
+      .map(line => line.text)
+      .join(" ");
   }
 
   function inputScoresToMap(scores){
@@ -515,37 +470,162 @@ document.addEventListener(
       const labelLineGap = 34;
       const labelOuterR = labelInnerR + labelLineGap;
       
-      let adjR;
-      let nounR;
+      let line1R;
+      let line2R;
       
       if (bottom) {
-        // Shift the entire reversed block outward by one line.
-        adjR = labelOuterR;
-        nounR = labelOuterR + labelLineGap;
+        /*
+          The lower labels read in reverse around the circle.
+      
+          Shift the whole two-line block outward by one line,
+          preserving the visual arrangement we established
+          for the English diagram.
+        */
+        line1R = labelOuterR;
+        line2R = labelOuterR + labelLineGap;
       } else {
-        adjR = labelOuterR;
-        nounR = labelInnerR;
+        line1R = labelOuterR;
+        line2R = labelInnerR;
       }
 
       const arcStart = a0 + 3.5;
       const arcEnd = a1 - 3.5;
-
-      const adjArc = document.createElementNS("http://www.w3.org/2000/svg","path");
-      const nounArc = document.createElementNS("http://www.w3.org/2000/svg","path");
-      const adjId = `adjArc${i}`;
-      const nounId = `nounArc${i}`;
-
-      adjArc.setAttribute("id",adjId);
-      nounArc.setAttribute("id",nounId);
-      adjArc.setAttribute("d",arcPath(adjR,arcStart,arcEnd,reverse));
-      nounArc.setAttribute("d",arcPath(nounR,arcStart,arcEnd,reverse));
-      adjArc.setAttribute("fill","none");
-      adjArc.setAttribute("stroke","none");
-      nounArc.setAttribute("fill","none");
-      nounArc.setAttribute("stroke","none");
-
-      labelPathsG.appendChild(adjArc);
-      labelPathsG.appendChild(nounArc);
+      
+      const qc = DIAGRAM_QCS[i];
+      const lineRadii = [line1R, line2R];
+      
+      qc.lines.forEach((line, lineIndex) => {
+      
+        const radius =
+          lineRadii[lineIndex] ??
+          (line1R + lineIndex * labelLineGap);
+      
+        const arc =
+          document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "path"
+          );
+      
+        const arcId =
+          `labelArc${i}_${lineIndex}`;
+      
+        arc.setAttribute("id", arcId);
+      
+        arc.setAttribute(
+          "d",
+          arcPath(
+            radius,
+            arcStart,
+            arcEnd,
+            reverse
+          )
+        );
+      
+        arc.setAttribute("fill", "none");
+        arc.setAttribute("stroke", "none");
+      
+        labelPathsG.appendChild(arc);
+      
+      
+        const text =
+          document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "text"
+          );
+      
+        text.setAttribute(
+          "class",
+          `${
+            line.emphasis
+              ? "arc-label-adj"
+              : "arc-label-noun"
+          } qc-clickable`
+        );
+      
+        text.setAttribute(
+          "data-qc-index",
+          i
+        );
+      
+        text.setAttribute(
+          "tabindex",
+          "0"
+        );
+      
+        text.setAttribute(
+          "role",
+          "button"
+        );
+      
+        /*
+          Optional per-language adjustment.
+      
+          Most translations will remain at 1.
+          A longer translated QC can use, for example,
+          labelScale: 0.92 in its language file.
+        */
+        const labelScale =
+          Number(qc.labelScale) || 1;
+      
+        text.style.fontSize =
+          `${labelScale}em`;
+      
+      
+        text.addEventListener(
+          "click",
+          event => {
+      
+            event.stopPropagation();
+      
+            openQcCard(i);
+          }
+        );
+      
+      
+        text.addEventListener(
+          "keydown",
+          event => {
+      
+            if(
+              event.key === "Enter" ||
+              event.key === " "
+            ){
+              event.preventDefault();
+      
+              openQcCard(i);
+            }
+          }
+        );
+      
+      
+        const textPath =
+          document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "textPath"
+          );
+      
+        textPath.setAttribute(
+          "href",
+          `#${arcId}`
+        );
+      
+        textPath.setAttribute(
+          "startOffset",
+          "50%"
+        );
+      
+        textPath.setAttribute(
+          "text-anchor",
+          "middle"
+        );
+      
+        textPath.textContent =
+          line.text;
+      
+        text.appendChild(textPath);
+      
+        labelsG.appendChild(text);
+      });
 
       const adjText = document.createElementNS("http://www.w3.org/2000/svg","text");
       adjText.setAttribute(
