@@ -1,0 +1,1 @@
+window.NCD_POT_PLANT_LANGUAGES = window.NCD_POT_PLANT_LANGUAGES || {};
