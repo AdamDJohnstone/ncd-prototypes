@@ -66,6 +66,7 @@ window.NCD_POT_PLANT_LANGUAGES.en = {
 
   qcs: {
     LR: {
+      name: "Loving Relationships",
       lines: [
         { text: "Loving", emphasis: true },
         { text: "Relationships", emphasis: false }
@@ -77,6 +78,7 @@ window.NCD_POT_PLANT_LANGUAGES.en = {
     },
 
     EL: {
+      name: "Empowering Leadership",
       lines: [
         { text: "Empowering", emphasis: true },
         { text: "Leadership", emphasis: false }
@@ -88,6 +90,7 @@ window.NCD_POT_PLANT_LANGUAGES.en = {
     },
 
     ES: {
+      name: "Effective Structures",
       lines: [
         { text: "Effective", emphasis: true },
         { text: "Structures", emphasis: false }
@@ -99,6 +102,7 @@ window.NCD_POT_PLANT_LANGUAGES.en = {
     },
 
     GBM: {
+      name: "Gift-based Ministry",
       lines: [
         { text: "Gift-based", emphasis: true },
         { text: "Ministry", emphasis: false }
@@ -110,6 +114,7 @@ window.NCD_POT_PLANT_LANGUAGES.en = {
     },
 
     NOE: {
+      name: "Need-oriented Evangelism",
       lines: [
         { text: "Need-oriented", emphasis: true },
         { text: "Evangelism", emphasis: false }
@@ -121,6 +126,7 @@ window.NCD_POT_PLANT_LANGUAGES.en = {
     },
 
     IWS: {
+      name: "Inspiring Worship Service",
       lines: [
         { text: "Inspiring", emphasis: true },
         { text: "Worship Service", emphasis: false }
@@ -132,6 +138,7 @@ window.NCD_POT_PLANT_LANGUAGES.en = {
     },
 
     PS: {
+      name: "Passionate Spirituality",
       lines: [
         { text: "Passionate", emphasis: true },
         { text: "Spirituality", emphasis: false }
@@ -143,6 +150,7 @@ window.NCD_POT_PLANT_LANGUAGES.en = {
     },
 
     HSG: {
+      name: "Holistic Small Groups",
       lines: [
         { text: "Holistic", emphasis: true },
         { text: "Small Groups", emphasis: false }
