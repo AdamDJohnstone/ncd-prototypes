@@ -42,7 +42,6 @@
   const spiralPath = document.getElementById("spiral");
   const spiralUnder = document.getElementById("spiralUnder");
   const stopDot = document.getElementById("stopDot");
-
   const cx=440, cy=440, sectorDeg=45, startDeg=-112.5;
   const minRadius=108, rankStep=36, maxRadius=minRadius+7*rankStep;
   const radialGrowthPerTurn=33, b=radialGrowthPerTurn/(2*Math.PI);
@@ -58,7 +57,7 @@
   function updateUrlFromScores(){const p=new URLSearchParams(window.location.search); p.set("scores",inputScores.join(",")); history.replaceState(null,"",`${window.location.pathname}?${p.toString()}`);}
   function degToRad(d){return d*Math.PI/180;}
   function pointPolar(r,theta){return [cx+r*Math.cos(theta),cy+r*Math.sin(theta)];}
-  function rankDescending(values){const idx=values.map((_,i)=>i).sort((a,b)=>values[b]-values[a]); const ranks=new Array(values.length); idx.forEach((original,pos)=>ranks[original]=pos+1); return ranks;}
+  function rankDescending(values){const idx=values.map((_,i)=>i).sort((a,b)=>values[a]-values[b]); const ranks=new Array(values.length); idx.forEach((original,pos)=>ranks[original]=pos+1); return ranks;}
   function rankToRadius(rank){return minRadius+(rank-1)*rankStep;}
   function sectorIndexForAngle(theta){let deg=theta*180/Math.PI; while(deg<startDeg)deg+=360; while(deg>=startDeg+360)deg-=360; return Math.floor((deg-startDeg)/sectorDeg);}
   function boundaryCrossingTheta(prevTheta,theta,prevSector){let boundaryDeg=startDeg+(prevSector+1)*sectorDeg; let boundary=degToRad(boundaryDeg); while(boundary<=prevTheta)boundary+=2*Math.PI; while(boundary>theta)boundary-=2*Math.PI; return boundary;}
@@ -87,7 +86,6 @@
     });
     const minText=document.getElementById("minText"),maxText=document.getElementById("maxText");if(minText)minText.textContent=`${fullName(DIAGRAM_QCS[minIdx])} — ${minVal}`;if(maxText)maxText.textContent=`${fullName(DIAGRAM_QCS[maxIdx])} — ${maxVal}`;return {ranks,minIdx};
   }
-
   function buildSpiralPoints(ranks,minIdx){const theta0=-Math.PI/2,thetaMax=theta0+Math.PI*60,step=.0045,pts=[[cx,cy]],minBoundary=rankToRadius(ranks[minIdx]);let prevTheta=theta0,prevSector=sectorIndexForAngle(prevTheta);for(let theta=theta0+step;theta<=thetaMax;theta+=step){const currentSector=sectorIndexForAngle(theta);if(currentSector!==prevSector){const crossingTheta=boundaryCrossingTheta(prevTheta,theta,prevSector),crossingR=b*(crossingTheta-theta0);if(currentSector===minIdx&&crossingR>minBoundary){pts.push(pointPolar(crossingR,crossingTheta));return pts;}}const r=b*(theta-theta0);pts.push(pointPolar(r,theta));prevTheta=theta;prevSector=currentSector;}return pts;}
   function pointsToPath(points,count=points.length){const n=Math.max(1,Math.min(count,points.length));let d=`M ${points[0][0].toFixed(2)} ${points[0][1].toFixed(2)}`;for(let i=1;i<n;i++)d+=` L ${points[i][0].toFixed(2)} ${points[i][1].toFixed(2)}`;return d;}
   function setFullSpiral(){setSpiralProgress(1);}
@@ -108,15 +106,12 @@
   const isViewer=document.body.classList.contains("viewer"),growBtn=document.getElementById("growBtn");
   if(isViewer){
     const {ranks,minIdx}=draw();spiralPoints=buildSpiralPoints(ranks,minIdx);setSpiralProgress(0);
-
-    /* Export-only hooks. They render a requested state immediately, with no clock. */
     window.NCDPotPlantExport={
       setWedgeOpacity(value){document.querySelectorAll(".wedge").forEach(w=>{w.style.transition="none";w.style.transform="scale(1)";w.style.opacity=String(Math.max(0,Math.min(.70,value)));});},
       setSpiralProgress(progress){if(animationFrame){cancelAnimationFrame(animationFrame);animationFrame=null;}setSpiralProgress(progress);},
       setSpiralTone(tone){document.body.classList.remove("growing","settled");if(tone==="olive")document.body.classList.add("settled");else document.body.classList.add("growing");},
       hideControls(){if(growBtn)growBtn.style.display="none";if(qcCard)qcCard.style.display="none";}
     };
-
     if(growBtn)growBtn.addEventListener("click",()=>{document.body.classList.remove("settled","growing");const firstRun=!document.body.classList.contains("has-grown");growBtn.classList.add("is-running");if(firstRun){document.body.classList.add("revealing");window.setTimeout(()=>{document.body.classList.remove("revealing");document.body.classList.add("growing");animateSpiral();},1000);}else{document.body.classList.add("growing");animateSpiral();}const preGrowthDelay=firstRun?1000:0;window.setTimeout(()=>{window.setTimeout(()=>{document.body.classList.remove("growing");document.body.classList.add("settled","has-grown");},500);window.setTimeout(()=>{const icon=growBtn.querySelector(".grow-icon"),label=growBtn.querySelector(".grow-label");if(icon)icon.textContent="🌱";if(label)label.textContent=language.interface.watchAgain;growBtn.classList.add("is-replay");growBtn.classList.remove("is-running");},900);},preGrowthDelay+animationDurationMs);});
   } else render(true);
 })();
