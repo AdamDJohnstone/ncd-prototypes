@@ -79,33 +79,19 @@
             filter="url(#tipGlow)">
           </circle>
 
-                    <g id="wedges"></g>
+          <g id="wedges"></g>
           <g id="labelPaths"></g>
           <g id="labels"></g>
         </svg>
 
-        <section
-          id="qcCard"
-          class="qc-card"
-          aria-hidden="true"
-          aria-live="polite"
-        >
-          <button
-            id="qcCardClose"
-            class="qc-card-close"
-            type="button"
-            aria-label="Close"
-          >
-            ×
-          </button>
-
+        <section id="qcCard" class="qc-card" aria-hidden="true" aria-live="polite">
+          <button id="qcCardClose" class="qc-card-close" type="button" aria-label="Close">×</button>
           <div class="qc-card-content">
             <div id="qcCardName" class="qc-card-name"></div>
             <div id="qcCardQuestion" class="qc-card-question"></div>
             <p id="qcCardDescription" class="qc-card-description"></p>
           </div>
         </section>
-
       </div>
 
       <div class="legend">
@@ -113,7 +99,6 @@
           <strong>Maximum factor</strong><br>
           <span id="maxText"></span>
         </div>
-
         <div class="badge">
           <strong>Minimum factor</strong><br>
           <span id="minText"></span>
@@ -123,7 +108,6 @@
 
     <aside class="card controls">
       <h2>Survey scores</h2>
-
       <div id="sliders"></div>
 
       <div class="buttons">
@@ -131,8 +115,8 @@
         <button id="randomBtn" type="button">Random result</button>
         <button id="closeBtn" type="button">Close scores test</button>
         <button id="balancedBtn" type="button">Balanced result</button>
+        <button id="exportVideoBtn" type="button">Export video</button>
       </div>
-
     </aside>
   </div>
 
@@ -140,5 +124,6 @@
   <script src="/ncd-prototypes/pot-plant/languages/en.js"></script>
   <script src="/ncd-prototypes/pot-plant/languages/nb.js"></script>
   <script src="/ncd-prototypes/pot-plant/potplant.js"></script>
+  <script src="/ncd-prototypes/pot-plant/export.js"></script>
 </body>
 </html>
