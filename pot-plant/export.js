@@ -2,16 +2,19 @@
   const exportBtn = document.getElementById("exportVideoBtn");
   if (!exportBtn) return;
 
-  const EXPORT_WIDTH = 1000;
-  const EXPORT_HEIGHT = 1000;
+  const SIZE = 1000;
   const FPS = 30;
-  const INITIAL_SETTLE_MS = 250;
+  const INITIAL_HOLD_MS = 350;
   const WEDGE_REVEAL_MS = 1000;
   const SPIRAL_MS = 10000;
   const GOLD_HOLD_MS = 500;
   const OLIVE_SETTLE_MS = 1800;
   const FINAL_HOLD_MS = 1000;
-  const TOTAL_MS = INITIAL_SETTLE_MS + WEDGE_REVEAL_MS + SPIRAL_MS + GOLD_HOLD_MS + OLIVE_SETTLE_MS + FINAL_HOLD_MS;
+  const TOTAL_AFTER_CLICK_MS = WEDGE_REVEAL_MS + SPIRAL_MS + GOLD_HOLD_MS + OLIVE_SETTLE_MS + FINAL_HOLD_MS;
+
+  function sleep(ms){
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
 
   function chooseMimeType(){
     const candidates = [
@@ -21,73 +24,15 @@
       "video/webm;codecs=vp8",
       "video/webm"
     ];
-
     return candidates.find(type => MediaRecorder.isTypeSupported(type)) || "";
   }
 
-  function copyComputedStyles(source, target){
-    const sourceNodes = [source, ...source.querySelectorAll("*")];
-    const targetNodes = [target, ...target.querySelectorAll("*")];
-
-    sourceNodes.forEach((node, index) => {
-      const clone = targetNodes[index];
-      if (!clone || !(node instanceof Element)) return;
-
-      const style = getComputedStyle(node);
-      const properties = [
-        "fill", "fill-opacity", "stroke", "stroke-opacity", "stroke-width",
-        "stroke-linecap", "stroke-linejoin", "opacity", "font-family",
-        "font-size", "font-weight", "font-style", "letter-spacing",
-        "text-anchor", "dominant-baseline", "filter", "visibility"
-      ];
-
-      properties.forEach(property => {
-        const value = style.getPropertyValue(property);
-        if (value) clone.style.setProperty(property, value);
-      });
-    });
-  }
-
-  async function drawSvgFrame(sourceSvg, ctx){
-    const clone = sourceSvg.cloneNode(true);
-    copyComputedStyles(sourceSvg, clone);
-
-    clone.setAttribute("width", String(EXPORT_WIDTH));
-    clone.setAttribute("height", String(EXPORT_HEIGHT));
-    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-    clone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
-
-    // Interactive accessibility attributes are irrelevant in the exported image.
-    clone.querySelectorAll("[tabindex]").forEach(el => el.removeAttribute("tabindex"));
-
-    const xml = new XMLSerializer().serializeToString(clone);
-    const blob = new Blob([xml], {type: "image/svg+xml;charset=utf-8"});
-    const url = URL.createObjectURL(blob);
-
-    try {
-      const image = new Image();
-      image.decoding = "sync";
-      image.src = url;
-      await image.decode();
-
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, EXPORT_WIDTH, EXPORT_HEIGHT);
-      ctx.drawImage(image, 0, 0, EXPORT_WIDTH, EXPORT_HEIGHT);
-    } finally {
-      URL.revokeObjectURL(url);
-    }
-  }
-
   function makeViewerUrl(){
-    const params = new URLSearchParams(window.location.search);
-    const scores = params.get("scores");
-    const lang = params.get("lang") || "en";
-
-    const viewerParams = new URLSearchParams();
-    if (scores) viewerParams.set("scores", scores);
-    viewerParams.set("lang", lang);
-
-    return `/ncd-prototypes/pot-plant/view/?${viewerParams.toString()}`;
+    const current = new URLSearchParams(window.location.search);
+    const viewer = new URLSearchParams();
+    if (current.get("scores")) viewer.set("scores", current.get("scores"));
+    viewer.set("lang", current.get("lang") || "en");
+    return `/ncd-prototypes/pot-plant/view/?${viewer.toString()}`;
   }
 
   function makeHiddenViewer(){
@@ -118,8 +63,100 @@
     });
   }
 
-  function sleep(ms){
-    return new Promise(resolve => setTimeout(resolve, ms));
+  /*
+    SVG rendered as an <img> is a separate image document. Browser-generated
+    computed font names and absolute url(...) references can therefore behave
+    differently from the live SVG. Keep the live SVG's geometry, but make the
+    image clone self-contained before drawing it to the recording canvas.
+  */
+  function prepareSvgClone(sourceSvg){
+    const clone = sourceSvg.cloneNode(true);
+    const sourceNodes = [sourceSvg, ...sourceSvg.querySelectorAll("*")];
+    const cloneNodes = [clone, ...clone.querySelectorAll("*")];
+
+    const copiedProperties = [
+      "fill", "fill-opacity", "stroke", "stroke-opacity", "stroke-width",
+      "stroke-linecap", "stroke-linejoin", "opacity", "font-size",
+      "font-weight", "font-style", "letter-spacing", "text-anchor",
+      "dominant-baseline", "visibility", "transform", "transform-origin"
+    ];
+
+    sourceNodes.forEach((source, index) => {
+      const target = cloneNodes[index];
+      if (!target || !(source instanceof Element)) return;
+      const style = source.ownerDocument.defaultView.getComputedStyle(source);
+      copiedProperties.forEach(property => {
+        const value = style.getPropertyValue(property);
+        if (value) target.style.setProperty(property, value);
+      });
+    });
+
+    /* Match the live viewer's system font instead of serialising Safari/Chrome's
+       private computed font-family name, which can fall back during SVG decoding. */
+    clone.querySelectorAll("text").forEach(text => {
+      text.style.fontFamily = 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+    });
+
+    /* Re-establish local paint/filter references inside the cloned SVG. */
+    clone.querySelectorAll(".wedge").forEach((wedge, index) => {
+      wedge.setAttribute("fill", `url(#wedgeGrad${index})`);
+      wedge.style.fill = `url(#wedgeGrad${index})`;
+    });
+
+    const spiral = clone.querySelector("#spiral");
+    const spiralUnder = clone.querySelector("#spiralUnder");
+    const stopDot = clone.querySelector("#stopDot");
+
+    if (spiral){
+      const source = sourceSvg.querySelector("#spiral");
+      const style = source.ownerDocument.defaultView.getComputedStyle(source);
+      spiral.style.stroke = style.stroke;
+      spiral.style.strokeOpacity = style.strokeOpacity;
+      spiral.setAttribute("filter", "url(#spiralGlow)");
+      spiral.style.filter = "url(#spiralGlow)";
+    }
+
+    if (spiralUnder){
+      const source = sourceSvg.querySelector("#spiralUnder");
+      const style = source.ownerDocument.defaultView.getComputedStyle(source);
+      spiralUnder.style.stroke = style.stroke;
+      spiralUnder.style.strokeOpacity = style.strokeOpacity;
+      spiralUnder.style.filter = "none";
+    }
+
+    if (stopDot){
+      const source = sourceSvg.querySelector("#stopDot");
+      const style = source.ownerDocument.defaultView.getComputedStyle(source);
+      stopDot.style.fill = style.fill;
+      stopDot.setAttribute("filter", "url(#tipGlow)");
+      stopDot.style.filter = "url(#tipGlow)";
+    }
+
+    clone.setAttribute("width", String(SIZE));
+    clone.setAttribute("height", String(SIZE));
+    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    clone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
+    clone.querySelectorAll("[tabindex]").forEach(el => el.removeAttribute("tabindex"));
+
+    return clone;
+  }
+
+  async function drawSvgFrame(sourceSvg, ctx){
+    const clone = prepareSvgClone(sourceSvg);
+    const xml = new XMLSerializer().serializeToString(clone);
+    const blob = new Blob([xml], {type:"image/svg+xml;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+
+    try {
+      const image = new Image();
+      image.src = url;
+      await image.decode();
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, SIZE, SIZE);
+      ctx.drawImage(image, 0, 0, SIZE, SIZE);
+    } finally {
+      URL.revokeObjectURL(url);
+    }
   }
 
   async function exportVideo(){
@@ -134,11 +171,12 @@
 
     let iframe;
     let recorder;
+    let stream;
 
     try {
       iframe = makeHiddenViewer();
       await waitForLoad(iframe);
-      await sleep(300);
+      await sleep(900); // allow the viewer label reveal and fonts to settle
 
       const viewerDoc = iframe.contentDocument;
       const sourceSvg = viewerDoc.getElementById("viz");
@@ -146,10 +184,10 @@
       if (!sourceSvg || !growBtn) throw new Error("Could not initialise the clean viewer.");
 
       const canvas = document.createElement("canvas");
-      canvas.width = EXPORT_WIDTH;
-      canvas.height = EXPORT_HEIGHT;
+      canvas.width = SIZE;
+      canvas.height = SIZE;
       const ctx = canvas.getContext("2d", {alpha:false});
-      const stream = canvas.captureStream(FPS);
+      stream = canvas.captureStream(FPS);
       const mimeType = chooseMimeType();
       const chunks = [];
 
@@ -164,24 +202,21 @@
 
       const stopped = new Promise(resolve => recorder.addEventListener("stop", resolve, {once:true}));
 
-      // Capture the labels-only opening frame before starting the viewer animation.
       await drawSvgFrame(sourceSvg, ctx);
       recorder.start(250);
-      await sleep(INITIAL_SETTLE_MS);
+      await sleep(INITIAL_HOLD_MS);
 
       growBtn.click();
       const started = performance.now();
       let nextFrame = started;
-      const activeDuration = TOTAL_MS - INITIAL_SETTLE_MS;
 
-      while (performance.now() - started < activeDuration){
+      while (performance.now() - started < TOTAL_AFTER_CLICK_MS){
         await drawSvgFrame(sourceSvg, ctx);
         nextFrame += 1000 / FPS;
         const delay = nextFrame - performance.now();
         if (delay > 0) await sleep(delay);
       }
 
-      // Ensure the final settled frame is present at the end of the recording.
       await drawSvgFrame(sourceSvg, ctx);
       recorder.stop();
       await stopped;
@@ -189,7 +224,7 @@
 
       const actualType = recorder.mimeType || mimeType || "video/webm";
       const extension = actualType.includes("mp4") ? "mp4" : "webm";
-      const output = new Blob(chunks, {type: actualType});
+      const output = new Blob(chunks, {type:actualType});
       const url = URL.createObjectURL(output);
       const lang = new URLSearchParams(window.location.search).get("lang") || "en";
       const link = document.createElement("a");
@@ -208,6 +243,7 @@
       exportBtn.textContent = originalText;
       if (recorder && recorder.state !== "inactive") recorder.stop();
     } finally {
+      if (stream) stream.getTracks().forEach(track => track.stop());
       if (iframe) iframe.remove();
       exportBtn.disabled = false;
     }
