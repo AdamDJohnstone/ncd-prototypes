@@ -51,33 +51,9 @@
             Eight ranked quality-characteristic wedges and a spiral growing from the centre until it reaches the minimum factor.
           </desc>
 
-          <path
-            id="spiralUnder"
-            fill="none"
-            stroke="var(--spiral)"
-            stroke-opacity=".16"
-            stroke-width="12"
-            stroke-linecap="round"
-            stroke-linejoin="round">
-          </path>
-
-          <path
-            id="spiral"
-            fill="none"
-            stroke="var(--spiral)"
-            stroke-opacity=".86"
-            stroke-width="8"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            filter="url(#spiralGlow)">
-          </path>
-
-          <circle
-            id="stopDot"
-            r="8"
-            fill="var(--spiral)"
-            filter="url(#tipGlow)">
-          </circle>
+          <path id="spiralUnder" fill="none" stroke="var(--spiral)" stroke-opacity=".16" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"></path>
+          <path id="spiral" fill="none" stroke="var(--spiral)" stroke-opacity=".86" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" filter="url(#spiralGlow)"></path>
+          <circle id="stopDot" r="8" fill="var(--spiral)" filter="url(#tipGlow)"></circle>
 
           <g id="wedges"></g>
           <g id="labelPaths"></g>
@@ -95,14 +71,8 @@
       </div>
 
       <div class="legend">
-        <div class="badge">
-          <strong>Maximum factor</strong><br>
-          <span id="maxText"></span>
-        </div>
-        <div class="badge">
-          <strong>Minimum factor</strong><br>
-          <span id="minText"></span>
-        </div>
+        <div class="badge"><strong>Maximum factor</strong><br><span id="maxText"></span></div>
+        <div class="badge"><strong>Minimum factor</strong><br><span id="minText"></span></div>
       </div>
     </section>
 
@@ -115,7 +85,15 @@
         <button id="randomBtn" type="button">Random result</button>
         <button id="closeBtn" type="button">Close scores test</button>
         <button id="balancedBtn" type="button">Balanced result</button>
-        <button id="exportVideoBtn" type="button">Export video</button>
+      </div>
+
+      <div class="export-control">
+        <label for="churchNameInput">Church name <span>(optional)</span></label>
+        <div class="export-row">
+          <input id="churchNameInput" type="text" autocomplete="organization" placeholder="e.g. Riviera CC">
+          <button id="exportVideoBtn" type="button">Export video</button>
+        </div>
+        <div class="export-filename" id="exportFilenamePreview">ncd-pot-plant-en.mp4</div>
       </div>
     </aside>
   </div>
