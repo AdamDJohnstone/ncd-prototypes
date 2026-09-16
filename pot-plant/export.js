@@ -14,6 +14,17 @@
     const props=["fill","fill-opacity","stroke","stroke-opacity","stroke-width","stroke-linecap","stroke-linejoin","opacity","font-size","font-weight","font-style","letter-spacing","text-anchor","dominant-baseline","visibility","transform","transform-origin"];
     src.forEach((s,i)=>{const d=dst[i];if(!d||!(s instanceof Element))return;const st=s.ownerDocument.defaultView.getComputedStyle(s);props.forEach(p=>{const v=st.getPropertyValue(p);if(v)d.style.setProperty(p,v);});});
     clone.querySelectorAll("text").forEach(t=>t.style.fontFamily='system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif');
+
+    /* Preserve the live label hierarchy explicitly when the SVG is rasterised for video. */
+    clone.querySelectorAll(".arc-label-adj").forEach(t=>{
+      t.setAttribute("fill","#223029");
+      t.style.fill="#223029";
+    });
+    clone.querySelectorAll(".arc-label-noun").forEach(t=>{
+      t.setAttribute("fill","#52605a");
+      t.style.fill="#52605a";
+    });
+
     const liveWedges=sourceSvg.querySelectorAll(".wedge");clone.querySelectorAll(".wedge").forEach((w,i)=>{const st=liveWedges[i].ownerDocument.defaultView.getComputedStyle(liveWedges[i]),o=st.opacity||"0";w.setAttribute("fill",`url(#wedgeGrad${i})`);w.style.fill=`url(#wedgeGrad${i})`;w.setAttribute("opacity",o);w.style.opacity=o;});
     const spiral=clone.querySelector("#spiral"),under=clone.querySelector("#spiralUnder"),dot=clone.querySelector("#stopDot");
     if(spiral){const s=sourceSvg.querySelector("#spiral"),st=s.ownerDocument.defaultView.getComputedStyle(s);spiral.removeAttribute("filter");spiral.style.filter="none";spiral.setAttribute("stroke",st.stroke||"#e0b62a");spiral.style.stroke=st.stroke||"#e0b62a";spiral.setAttribute("stroke-opacity",st.strokeOpacity||".86");spiral.style.strokeOpacity=st.strokeOpacity||".86";spiral.setAttribute("stroke-width","8");spiral.style.strokeWidth="8px";}
