@@ -1,7 +1,7 @@
 (() => {
   const exportBtn=document.getElementById("exportVideoBtn"); if(!exportBtn)return;
   const SIZE=1000,FPS=30;
-  const INITIAL_FRAMES=Math.round(.35*FPS),REVEAL_FRAMES=FPS,SPIRAL_FRAMES=10*FPS,GOLD_FRAMES=Math.round(.5*FPS),SETTLE_FRAMES=Math.round(1.8*FPS),FINAL_FRAMES=FPS;
+  const INITIAL_FRAMES=Math.round(.35*FPS),REVEAL_FRAMES=FPS,SPIRAL_FRAMES=10*FPS,GOLD_FRAMES=Math.round(.5*FPS),FINAL_FRAMES=FPS;
   const FRAME_MS=1000/FPS;
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   function chooseMimeType(){return ["video/mp4;codecs=h264","video/mp4","video/webm;codecs=vp9","video/webm;codecs=vp8","video/webm"].find(t=>MediaRecorder.isTypeSupported(t))||"";}
@@ -38,11 +38,16 @@
       for(let i=0;i<INITIAL_FRAMES;i++)await commitFrame();
       for(let i=1;i<=REVEAL_FRAMES;i++){api.setWedgeOpacity(.70*(i/REVEAL_FRAMES));await commitFrame();}
       api.setWedgeOpacity(.70);
-      /* The exporter, not requestAnimationFrame, owns spiral progress: exactly 300 requested growth frames. */
-      for(let i=1;i<=SPIRAL_FRAMES;i++){api.setSpiralProgress(i/SPIRAL_FRAMES);await commitFrame();}
-      api.setSpiralProgress(1);api.setSpiralTone("gold");for(let i=0;i<GOLD_FRAMES;i++)await commitFrame();
-      api.setSpiralTone("olive");for(let i=0;i<SETTLE_FRAMES;i++)await commitFrame();
-      for(let i=0;i<FINAL_FRAMES;i++)await commitFrame();
+      /* Match the live animation exactly: rapid early growth, then a long deceleration into the constraint. */
+      for(let i=1;i<=SPIRAL_FRAMES;i++){
+        const t=i/SPIRAL_FRAMES;
+        const easedProgress=1-Math.pow(1-t,3.2);
+        api.setSpiralProgress(easedProgress);
+        await commitFrame();
+      }
+      /* Keep the completed spiral in the same gold/yellow state; no post-growth grey/olive fade. */
+      api.setSpiralProgress(1);api.setSpiralTone("gold");
+      for(let i=0;i<GOLD_FRAMES+FINAL_FRAMES;i++)await commitFrame();
       recorder.stop();await stopped;stream.getTracks().forEach(t=>t.stop());
       const type=recorder.mimeType||mime||"video/webm",ext=type.includes("mp4")?"mp4":"webm",output=new Blob(chunks,{type}),url=URL.createObjectURL(output),lang=new URLSearchParams(location.search).get("lang")||"en",a=document.createElement("a");a.href=url;a.download=`ncd-pot-plant-${lang}.${ext}`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);exportBtn.textContent=ext==="mp4"?"MP4 exported":"Video exported (WebM)";setTimeout(()=>exportBtn.textContent=original,2500);
     }catch(error){console.error("NCD Pot Plant video export failed:",error);alert(`Video export failed: ${error.message}`);exportBtn.textContent=original;if(recorder&&recorder.state!=="inactive")recorder.stop();}finally{if(stream)stream.getTracks().forEach(t=>t.stop());if(iframe)iframe.remove();exportBtn.disabled=false;}
