@@ -6,27 +6,40 @@ window.NCD_POT_PLANT_LANGUAGES.en = {
   name: "English",
 
   interface: {
-    playgroundTitle: "NCD Pot Plant Playground",
-    playgroundIntro:
-      "Ranked semi-transparent wedges with a warm spiral growing beneath them. Scores can be changed with the sliders or supplied through the URL.",
+  /*
+    PLAYGROUND
+  */
+  playgroundTitle: "NCD Pot Plant Playground",
+  playgroundIntro:
+    "Ranked semi-transparent wedges with a warm spiral growing beneath them. Scores can be changed with the sliders or supplied through the URL.",
 
-    surveyScores: "Survey scores",
-    replaySpiral: "Replay spiral",
-    randomResult: "Random result",
-    closeScoresTest: "Close scores test",
-    balancedResult: "Balanced result",
+  surveyScores: "Survey scores",
+  replaySpiral: "Replay spiral",
+  randomResult: "Random result",
+  closeScoresTest: "Close scores test",
+  balancedResult: "Balanced result",
 
-    maximumFactor: "Maximum factor",
-    minimumFactor: "Minimum factor",
+  maximumFactor: "Maximum factor",
+  minimumFactor: "Minimum factor",
 
-    inputOrder: "Input order",
+  inputOrder: "Input order",
 
-    watchGrow: "Watch it grow",
-    watchAgain: "Watch again",
+  /*
+    CLEAN VIEWER
+  */
+  watchGrow: "Watch it grow",
+  watchAgain: "Watch again",
 
-    close: "Close",
-    language: "Language"
-  },
+  /*
+    QUALITY CHARACTERISTIC INTERACTION
+  */
+  close: "Close",
+
+  /*
+    LANGUAGE
+  */
+  language: "Language"
+},
 
   /*
     QUALITY CHARACTERISTICS
