@@ -10,9 +10,7 @@ window.NCD_POT_PLANT_LANGUAGES.en = {
     PLAYGROUND
   */
   playgroundTitle: "NCD Pot Plant Playground",
-  playgroundIntro:
-    "Ranked semi-transparent wedges with a warm spiral growing beneath them. Scores can be changed with the sliders or supplied through the URL.",
-
+  
   surveyScores: "Survey scores",
   replaySpiral: "Replay spiral",
   randomResult: "Random result",
@@ -21,8 +19,6 @@ window.NCD_POT_PLANT_LANGUAGES.en = {
 
   maximumFactor: "Maximum factor",
   minimumFactor: "Minimum factor",
-
-  inputOrder: "Input order",
 
   /*
     CLEAN VIEWER
