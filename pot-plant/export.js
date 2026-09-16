@@ -1,5 +1,7 @@
 (() => {
   const exportBtn=document.getElementById("exportVideoBtn"); if(!exportBtn)return;
+  const churchNameInput=document.getElementById("churchNameInput");
+  const filenamePreview=document.getElementById("exportFilenamePreview");
   const SIZE=1000,FPS=30;
   const INITIAL_FRAMES=Math.round(.35*FPS),REVEAL_FRAMES=FPS,SPIRAL_FRAMES=10*FPS,GOLD_FRAMES=Math.round(.5*FPS),FINAL_FRAMES=FPS;
   const FRAME_MS=1000/FPS;
@@ -8,23 +10,18 @@
   function makeViewerUrl(){const c=new URLSearchParams(location.search),v=new URLSearchParams();if(c.get("scores"))v.set("scores",c.get("scores"));v.set("lang",c.get("lang")||"en");return `/ncd-prototypes/pot-plant/view/?${v}`;}
   function makeHiddenViewer(){const f=document.createElement("iframe");f.src=makeViewerUrl();f.setAttribute("aria-hidden","true");Object.assign(f.style,{position:"fixed",left:"-1200px",top:"0",width:"1000px",height:"1000px",border:"0",pointerEvents:"none",opacity:"1"});document.body.appendChild(f);return f;}
   function waitForLoad(f){return new Promise((res,rej)=>{const t=setTimeout(()=>rej(new Error("Viewer took too long to load.")),10000);f.addEventListener("load",()=>{clearTimeout(t);res();},{once:true});});}
+  function safeFilenamePart(value){return value.trim().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/&/g," and ").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");}
+  function exportBaseName(){const lang=new URLSearchParams(location.search).get("lang")||"en",church=safeFilenamePart(churchNameInput?.value||"");return `${church?church+"-":""}ncd-pot-plant-${lang}`;}
+  function updateFilenamePreview(){if(filenamePreview)filenamePreview.textContent=`${exportBaseName()}.mp4`;}
+  churchNameInput?.addEventListener("input",updateFilenamePreview);updateFilenamePreview();
 
   function prepareSvgClone(sourceSvg){
     const clone=sourceSvg.cloneNode(true),src=[sourceSvg,...sourceSvg.querySelectorAll("*")],dst=[clone,...clone.querySelectorAll("*")];
     const props=["fill","fill-opacity","stroke","stroke-opacity","stroke-width","stroke-linecap","stroke-linejoin","opacity","font-size","font-weight","font-style","letter-spacing","text-anchor","dominant-baseline","visibility","transform","transform-origin"];
     src.forEach((s,i)=>{const d=dst[i];if(!d||!(s instanceof Element))return;const st=s.ownerDocument.defaultView.getComputedStyle(s);props.forEach(p=>{const v=st.getPropertyValue(p);if(v)d.style.setProperty(p,v);});});
     clone.querySelectorAll("text").forEach(t=>t.style.fontFamily='system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif');
-
-    /* Preserve the live label hierarchy explicitly when the SVG is rasterised for video. */
-    clone.querySelectorAll(".arc-label-adj").forEach(t=>{
-      t.setAttribute("fill","#223029");
-      t.style.fill="#223029";
-    });
-    clone.querySelectorAll(".arc-label-noun").forEach(t=>{
-      t.setAttribute("fill","#52605a");
-      t.style.fill="#52605a";
-    });
-
+    clone.querySelectorAll(".arc-label-adj").forEach(t=>{t.setAttribute("fill","#223029");t.style.fill="#223029";});
+    clone.querySelectorAll(".arc-label-noun").forEach(t=>{t.setAttribute("fill","#52605a");t.style.fill="#52605a";});
     const liveWedges=sourceSvg.querySelectorAll(".wedge");clone.querySelectorAll(".wedge").forEach((w,i)=>{const st=liveWedges[i].ownerDocument.defaultView.getComputedStyle(liveWedges[i]),o=st.opacity||"0";w.setAttribute("fill",`url(#wedgeGrad${i})`);w.style.fill=`url(#wedgeGrad${i})`;w.setAttribute("opacity",o);w.style.opacity=o;});
     const spiral=clone.querySelector("#spiral"),under=clone.querySelector("#spiralUnder"),dot=clone.querySelector("#stopDot");
     if(spiral){const s=sourceSvg.querySelector("#spiral"),st=s.ownerDocument.defaultView.getComputedStyle(s);spiral.removeAttribute("filter");spiral.style.filter="none";spiral.setAttribute("stroke",st.stroke||"#e0b62a");spiral.style.stroke=st.stroke||"#e0b62a";spiral.setAttribute("stroke-opacity",st.strokeOpacity||".86");spiral.style.strokeOpacity=st.strokeOpacity||".86";spiral.setAttribute("stroke-width","8");spiral.style.strokeWidth="8px";}
@@ -49,18 +46,10 @@
       for(let i=0;i<INITIAL_FRAMES;i++)await commitFrame();
       for(let i=1;i<=REVEAL_FRAMES;i++){api.setWedgeOpacity(.70*(i/REVEAL_FRAMES));await commitFrame();}
       api.setWedgeOpacity(.70);
-      /* Match the live animation exactly: rapid early growth, then a long deceleration into the constraint. */
-      for(let i=1;i<=SPIRAL_FRAMES;i++){
-        const t=i/SPIRAL_FRAMES;
-        const easedProgress=1-Math.pow(1-t,3.2);
-        api.setSpiralProgress(easedProgress);
-        await commitFrame();
-      }
-      /* Keep the completed spiral in the same gold/yellow state; no post-growth grey/olive fade. */
-      api.setSpiralProgress(1);api.setSpiralTone("gold");
-      for(let i=0;i<GOLD_FRAMES+FINAL_FRAMES;i++)await commitFrame();
+      for(let i=1;i<=SPIRAL_FRAMES;i++){const t=i/SPIRAL_FRAMES,easedProgress=1-Math.pow(1-t,3.2);api.setSpiralProgress(easedProgress);await commitFrame();}
+      api.setSpiralProgress(1);api.setSpiralTone("gold");for(let i=0;i<GOLD_FRAMES+FINAL_FRAMES;i++)await commitFrame();
       recorder.stop();await stopped;stream.getTracks().forEach(t=>t.stop());
-      const type=recorder.mimeType||mime||"video/webm",ext=type.includes("mp4")?"mp4":"webm",output=new Blob(chunks,{type}),url=URL.createObjectURL(output),lang=new URLSearchParams(location.search).get("lang")||"en",a=document.createElement("a");a.href=url;a.download=`ncd-pot-plant-${lang}.${ext}`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);exportBtn.textContent=ext==="mp4"?"MP4 exported":"Video exported (WebM)";setTimeout(()=>exportBtn.textContent=original,2500);
+      const type=recorder.mimeType||mime||"video/webm",ext=type.includes("mp4")?"mp4":"webm",output=new Blob(chunks,{type}),url=URL.createObjectURL(output),a=document.createElement("a");a.href=url;a.download=`${exportBaseName()}.${ext}`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);exportBtn.textContent=ext==="mp4"?"MP4 exported":"Video exported (WebM)";setTimeout(()=>exportBtn.textContent=original,2500);
     }catch(error){console.error("NCD Pot Plant video export failed:",error);alert(`Video export failed: ${error.message}`);exportBtn.textContent=original;if(recorder&&recorder.state!=="inactive")recorder.stop();}finally{if(stream)stream.getTracks().forEach(t=>t.stop());if(iframe)iframe.remove();exportBtn.disabled=false;}
   }
   exportBtn.addEventListener("click",exportVideo);
