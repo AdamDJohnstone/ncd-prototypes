@@ -62,10 +62,10 @@ window.NCD_POT_PLANT_LANGUAGES.de = {
     },
 
     GBM: {
-      name: "Gabenorientierte Mitarbeit",
+      name: "Gabenorientierte Mitarbeiterschaft",
       lines: [
         { text: "Gabenorientierte", emphasis: true },
-        { text: "Mitarbeit", emphasis: false }
+        { text: "Mitarbeiterschaft", emphasis: false }
       ],
       labelScale: 1,
       heartQuestion: "Habe ich wirklich etwas beizutragen?",
