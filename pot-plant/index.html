@@ -19,88 +19,40 @@
           <option value="de">Deutsch</option>
           <option value="en">English</option>
           <option value="nb">Norsk (bokmål)</option>
+          <option value="th">ไทย</option>
         </select>
       </div>
       
       <div class="pot-plant-stage">
         <svg id="viz" viewBox="-60 -60 1000 1000" role="img" aria-labelledby="title desc">
           <defs>
-            <filter id="softEdge" x="-5%" y="-5%" width="110%" height="110%">
-              <feGaussianBlur stdDeviation="0.55"/>
-            </filter>
-
-            <filter id="spiralGlow" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="2.2" result="blur"/>
-              <feMerge>
-                <feMergeNode in="blur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-
-            <filter id="tipGlow" x="-80%" y="-80%" width="260%" height="260%">
-              <feGaussianBlur stdDeviation="4" result="blur"/>
-              <feMerge>
-                <feMergeNode in="blur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
+            <filter id="softEdge" x="-5%" y="-5%" width="110%" height="110%"><feGaussianBlur stdDeviation="0.55"/></filter>
+            <filter id="spiralGlow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="tipGlow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
           </defs>
-
           <title id="title">NCD Pot Plant</title>
-          <desc id="desc">
-            Eight ranked quality-characteristic wedges and a spiral growing from the centre until it reaches the minimum factor.
-          </desc>
-
+          <desc id="desc">Eight ranked quality-characteristic wedges and a spiral growing from the centre until it reaches the minimum factor.</desc>
           <path id="spiralUnder" fill="none" stroke="var(--spiral)" stroke-opacity=".16" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"></path>
           <path id="spiral" fill="none" stroke="var(--spiral)" stroke-opacity=".86" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" filter="url(#spiralGlow)"></path>
           <circle id="stopDot" r="8" fill="var(--spiral)" filter="url(#tipGlow)"></circle>
-
-          <g id="wedges"></g>
-          <g id="labelPaths"></g>
-          <g id="labels"></g>
+          <g id="wedges"></g><g id="labelPaths"></g><g id="labels"></g>
         </svg>
-
-        <section id="qcCard" class="qc-card" aria-hidden="true" aria-live="polite">
-          <button id="qcCardClose" class="qc-card-close" type="button" aria-label="Close">×</button>
-          <div class="qc-card-content">
-            <div id="qcCardName" class="qc-card-name"></div>
-            <div id="qcCardQuestion" class="qc-card-question"></div>
-            <p id="qcCardDescription" class="qc-card-description"></p>
-          </div>
-        </section>
+        <section id="qcCard" class="qc-card" aria-hidden="true" aria-live="polite"><button id="qcCardClose" class="qc-card-close" type="button" aria-label="Close">×</button><div class="qc-card-content"><div id="qcCardName" class="qc-card-name"></div><div id="qcCardQuestion" class="qc-card-question"></div><p id="qcCardDescription" class="qc-card-description"></p></div></section>
       </div>
-
-      <div class="legend">
-        <div class="badge"><strong>Maximum factor</strong><br><span id="maxText"></span></div>
-        <div class="badge"><strong>Minimum factor</strong><br><span id="minText"></span></div>
-      </div>
+      <div class="legend"><div class="badge"><strong>Maximum factor</strong><br><span id="maxText"></span></div><div class="badge"><strong>Minimum factor</strong><br><span id="minText"></span></div></div>
     </section>
 
     <aside class="card controls">
-      <h2>Survey scores</h2>
-      <div id="sliders"></div>
-
-      <div class="buttons">
-        <button id="animateBtn" type="button">Replay spiral</button>
-        <button id="randomBtn" type="button">Random result</button>
-        <button id="closeBtn" type="button">Close scores test</button>
-        <button id="balancedBtn" type="button">Balanced result</button>
-      </div>
-
-      <div class="export-control">
-        <label for="churchNameInput">Church name <span>(optional)</span></label>
-        <div class="export-row">
-          <input id="churchNameInput" type="text" autocomplete="organization" placeholder="e.g. Riviera CC">
-          <button id="exportVideoBtn" type="button">Export video</button>
-        </div>
-        <div class="export-filename" id="exportFilenamePreview">ncd-pot-plant-en.mp4</div>
-      </div>
+      <h2>Survey scores</h2><div id="sliders"></div>
+      <div class="buttons"><button id="animateBtn" type="button">Replay spiral</button><button id="randomBtn" type="button">Random result</button><button id="closeBtn" type="button">Close scores test</button><button id="balancedBtn" type="button">Balanced result</button></div>
+      <div class="export-control"><label for="churchNameInput">Church name <span>(optional)</span></label><div class="export-row"><input id="churchNameInput" type="text" autocomplete="organization" placeholder="e.g. Riviera CC"><button id="exportVideoBtn" type="button">Export video</button></div><div class="export-filename" id="exportFilenamePreview">ncd-pot-plant-en.mp4</div></div>
     </aside>
   </div>
 
   <script src="/ncd-prototypes/pot-plant/languages/de.js"></script>
   <script src="/ncd-prototypes/pot-plant/languages/en.js"></script>
   <script src="/ncd-prototypes/pot-plant/languages/nb.js"></script>
+  <script src="/ncd-prototypes/pot-plant/languages/th.js"></script>
   <script src="/ncd-prototypes/pot-plant/potplant.js"></script>
   <script src="/ncd-prototypes/pot-plant/export.js"></script>
 </body>
