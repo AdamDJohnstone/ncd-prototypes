@@ -1,14 +1,16 @@
 window.NCD_POT_PLANT_LANGUAGES =
   window.NCD_POT_PLANT_LANGUAGES || {};
 
+/* Only activate Thai document shaping when Thai is the requested language.
+   This lets CSS provide a Thai-capable font stack without affecting other languages. */
+if (new URLSearchParams(window.location.search).get("lang") === "th") {
+  document.documentElement.setAttribute("lang", "th");
+}
+
 window.NCD_POT_PLANT_LANGUAGES.th = {
   code: "th",
   name: "ไทย",
   labelScale: 0.66,
-
-  /* Thai uses combining vowels and tone marks. These hints keep the
-     browser shaping each curved label as Thai text rather than treating
-     combining marks as independent glyphs on the SVG text path. */
   labelLanguage: "th",
   labelFontFamily: 'Tahoma, "Noto Sans Thai", "Leelawadee UI", sans-serif',
   labelLetterSpacing: 0,
