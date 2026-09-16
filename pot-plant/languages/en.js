@@ -4,6 +4,7 @@ window.NCD_POT_PLANT_LANGUAGES =
 window.NCD_POT_PLANT_LANGUAGES.en = {
   code: "en",
   name: "English",
+  labelScale: 1,
 
   interface: {
   /*
@@ -67,7 +68,6 @@ window.NCD_POT_PLANT_LANGUAGES.en = {
         { text: "Loving", emphasis: true },
         { text: "Relationships", emphasis: false }
       ],
-      labelScale: 1,
       heartQuestion: "Do I really belong here?",
       description:
         "Loving relationships create a community where people experience genuine acceptance, care and belonging."
@@ -79,7 +79,6 @@ window.NCD_POT_PLANT_LANGUAGES.en = {
         { text: "Empowering", emphasis: true },
         { text: "Leadership", emphasis: false }
       ],
-      labelScale: 1,
       heartQuestion: "Do you really believe in me?",
       description:
         "Empowering leaders recognise people's God-given potential and help them grow into meaningful responsibility."
@@ -91,7 +90,6 @@ window.NCD_POT_PLANT_LANGUAGES.en = {
         { text: "Effective", emphasis: true },
         { text: "Structures", emphasis: false }
       ],
-      labelScale: 1,
       heartQuestion: "Do I really have room to grow?",
       description:
         "Effective structures create the freedom, clarity and support people need to grow and contribute fruitfully."
@@ -103,7 +101,6 @@ window.NCD_POT_PLANT_LANGUAGES.en = {
         { text: "Gift-based", emphasis: true },
         { text: "Ministry", emphasis: false }
       ],
-      labelScale: 1,
       heartQuestion: "Do I really have something to contribute?",
       description:
         "Gift-based ministry helps people discover how God has uniquely equipped them and find meaningful ways to contribute."
@@ -115,7 +112,6 @@ window.NCD_POT_PLANT_LANGUAGES.en = {
         { text: "Need-oriented", emphasis: true },
         { text: "Evangelism", emphasis: false }
       ],
-      labelScale: 1,
       heartQuestion: "Do you really care about me?",
       description:
         "Need-oriented evangelism begins by genuinely seeing and responding to the people God has placed around us."
@@ -127,7 +123,6 @@ window.NCD_POT_PLANT_LANGUAGES.en = {
         { text: "Inspiring", emphasis: true },
         { text: "Worship Service", emphasis: false }
       ],
-      labelScale: 1,
       heartQuestion: "Do I really meet God here?",
       description:
         "Inspiring worship helps people encounter God in ways that renew faith, hope and willingness to respond."
@@ -139,7 +134,6 @@ window.NCD_POT_PLANT_LANGUAGES.en = {
         { text: "Passionate", emphasis: true },
         { text: "Spirituality", emphasis: false }
       ],
-      labelScale: 1,
       heartQuestion: "Do I really trust God?",
       description:
         "Passionate spirituality grows where faith is lived from a genuine and life-giving relationship with God."
@@ -151,7 +145,6 @@ window.NCD_POT_PLANT_LANGUAGES.en = {
         { text: "Holistic", emphasis: true },
         { text: "Small Groups", emphasis: false }
       ],
-      labelScale: 1,
       heartQuestion: "Do you really know me?",
       description:
         "Holistic small groups create spaces where people become genuinely known, supported and challenged to grow."
