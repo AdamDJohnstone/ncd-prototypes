@@ -42,11 +42,6 @@
     return;
   }
   
-  document.documentElement.style.setProperty(
-    "--label-scale",
-    language.labelScale ?? 1
-  );
-  
   /*
     The keys below are structural, not translated.
   
