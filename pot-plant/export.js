@@ -3,7 +3,8 @@
   const churchNameInput=document.getElementById("churchNameInput");
   const filenamePreview=document.getElementById("exportFilenamePreview");
   const SIZE=1080,FPS=30;
-  const EXPORT_VIEWBOX="-100 -100 1080 1080";
+  const EXPORT_VIEWBOX={x:-100,y:-100,width:1080,height:1080};
+  const EXPORT_VIEWBOX_STRING=`${EXPORT_VIEWBOX.x} ${EXPORT_VIEWBOX.y} ${EXPORT_VIEWBOX.width} ${EXPORT_VIEWBOX.height}`;
   const INITIAL_FRAMES=Math.round(.35*FPS),REVEAL_FRAMES=FPS,SPIRAL_FRAMES=10*FPS,GOLD_FRAMES=Math.round(.5*FPS),FINAL_FRAMES=FPS;
   const FRAME_MS=1000/FPS;
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -13,10 +14,6 @@
     return /Safari\//.test(ua)&&!/Chrome\//.test(ua)&&!/Chromium\//.test(ua)&&!/Edg\//.test(ua)&&!/OPR\//.test(ua);
   }
   function chooseRecordingFormat(){
-    // Safari's MediaRecorder produces a conventional H.264 MP4. Chromium can
-    // claim MP4 support while writing VP9 into the MP4 container, which is not
-    // reliably playable in QuickTime, Keynote or PowerPoint. Never label that
-    // Chromium output as a presentation-compatible MP4.
     if(isSafari()){
       const mp4Types=["video/mp4;codecs=avc1.42E01E","video/mp4;codecs=avc1","video/mp4"];
       const mime=mp4Types.find(t=>MediaRecorder.isTypeSupported(t));
@@ -37,18 +34,49 @@
 
   function prepareSvgClone(sourceSvg){
     const clone=sourceSvg.cloneNode(true),src=[sourceSvg,...sourceSvg.querySelectorAll("*")],dst=[clone,...clone.querySelectorAll("*")];
-    const props=["fill","fill-opacity","stroke","stroke-opacity","stroke-width","stroke-linecap","stroke-linejoin","opacity","font-family","font-size","font-weight","font-style","letter-spacing","text-anchor","dominant-baseline","visibility","transform","transform-origin"];
+    const props=["fill","fill-opacity","stroke","stroke-opacity","stroke-width","stroke-linecap","stroke-linejoin","opacity","visibility","transform","transform-origin"];
     src.forEach((s,i)=>{const d=dst[i];if(!d||!(s instanceof Element))return;const st=s.ownerDocument.defaultView.getComputedStyle(s);props.forEach(p=>{const v=st.getPropertyValue(p);if(v)d.style.setProperty(p,v);});});
-    clone.querySelectorAll(".arc-label-adj").forEach(t=>{t.setAttribute("fill","#223029");t.style.fill="#223029";});
-    clone.querySelectorAll(".arc-label-noun").forEach(t=>{t.setAttribute("fill","#52605a");t.style.fill="#52605a";});
     const liveWedges=sourceSvg.querySelectorAll(".wedge");clone.querySelectorAll(".wedge").forEach((w,i)=>{const st=liveWedges[i].ownerDocument.defaultView.getComputedStyle(liveWedges[i]),o=st.opacity||"0";w.setAttribute("fill",`url(#wedgeGrad${i})`);w.style.fill=`url(#wedgeGrad${i})`;w.setAttribute("opacity",o);w.style.opacity=o;});
     const spiral=clone.querySelector("#spiral"),under=clone.querySelector("#spiralUnder"),dot=clone.querySelector("#stopDot");
     if(spiral){const s=sourceSvg.querySelector("#spiral"),st=s.ownerDocument.defaultView.getComputedStyle(s);spiral.removeAttribute("filter");spiral.style.filter="none";spiral.setAttribute("stroke",st.stroke||"#e0b62a");spiral.style.stroke=st.stroke||"#e0b62a";spiral.setAttribute("stroke-opacity",st.strokeOpacity||".86");spiral.style.strokeOpacity=st.strokeOpacity||".86";spiral.setAttribute("stroke-width","8");spiral.style.strokeWidth="8px";}
     if(under){const s=sourceSvg.querySelector("#spiralUnder"),st=s.ownerDocument.defaultView.getComputedStyle(s);under.removeAttribute("filter");under.style.filter="none";under.setAttribute("stroke",st.stroke||"#e0b62a");under.style.stroke=st.stroke||"#e0b62a";under.setAttribute("stroke-opacity",st.strokeOpacity||".16");under.style.strokeOpacity=st.strokeOpacity||".16";under.setAttribute("stroke-width","12");under.style.strokeWidth="12px";}
     if(dot){const s=sourceSvg.querySelector("#stopDot"),st=s.ownerDocument.defaultView.getComputedStyle(s);dot.removeAttribute("filter");dot.style.filter="none";dot.setAttribute("fill",st.fill||"#e0b62a");dot.style.fill=st.fill||"#e0b62a";dot.setAttribute("opacity",st.opacity||"0");dot.style.opacity=st.opacity||"0";}
-    clone.setAttribute("viewBox",EXPORT_VIEWBOX);clone.setAttribute("width",SIZE);clone.setAttribute("height",SIZE);clone.setAttribute("xmlns","http://www.w3.org/2000/svg");clone.setAttribute("xmlns:xlink","http://www.w3.org/1999/xlink");clone.querySelectorAll("[tabindex]").forEach(e=>e.removeAttribute("tabindex"));return clone;
+    // Labels are intentionally omitted from the SVG image. They are drawn on
+    // the canvas afterwards so complex scripts use the browser's normal text
+    // shaping engine instead of SVG-as-image shaping (which breaks Thai in Safari).
+    clone.querySelector("#labels")?.remove();
+    clone.querySelector("#labelPaths")?.remove();
+    clone.setAttribute("viewBox",EXPORT_VIEWBOX_STRING);clone.setAttribute("width",SIZE);clone.setAttribute("height",SIZE);clone.setAttribute("xmlns","http://www.w3.org/2000/svg");clone.setAttribute("xmlns:xlink","http://www.w3.org/1999/xlink");clone.querySelectorAll("[tabindex]").forEach(e=>e.removeAttribute("tabindex"));return clone;
   }
-  async function drawSvgFrame(svg,ctx){const xml=new XMLSerializer().serializeToString(prepareSvgClone(svg)),blob=new Blob([xml],{type:"image/svg+xml;charset=utf-8"}),url=URL.createObjectURL(blob);try{const im=new Image();im.src=url;await im.decode();ctx.fillStyle="#fff";ctx.fillRect(0,0,SIZE,SIZE);ctx.drawImage(im,0,0,SIZE,SIZE);}finally{URL.revokeObjectURL(url);}}
+
+  function svgToCanvasPoint(p){
+    return {x:(p.x-EXPORT_VIEWBOX.x)*(SIZE/EXPORT_VIEWBOX.width),y:(p.y-EXPORT_VIEWBOX.y)*(SIZE/EXPORT_VIEWBOX.height)};
+  }
+
+  function drawCanvasLabels(sourceSvg,ctx){
+    const doc=sourceSvg.ownerDocument;
+    sourceSvg.querySelectorAll("#labels text").forEach(text=>{
+      const textPath=text.querySelector("textPath");if(!textPath)return;
+      const href=textPath.getAttribute("href")||textPath.getAttribute("xlink:href");if(!href)return;
+      const path=doc.getElementById(href.replace(/^#/,""));if(!path)return;
+      const length=path.getTotalLength();if(!length)return;
+      const mid=length/2,delta=Math.min(2,Math.max(.5,length/200));
+      const p=path.getPointAtLength(mid),p0=path.getPointAtLength(Math.max(0,mid-delta)),p1=path.getPointAtLength(Math.min(length,mid+delta));
+      const cp=svgToCanvasPoint(p),angle=Math.atan2(p1.y-p0.y,p1.x-p0.x),st=doc.defaultView.getComputedStyle(text);
+      const fontSize=parseFloat(st.fontSize)||34,fontWeight=st.fontWeight||"400",fontStyle=st.fontStyle||"normal",fontFamily=st.fontFamily||"sans-serif";
+      ctx.save();ctx.translate(cp.x,cp.y);ctx.rotate(angle);ctx.textAlign="center";ctx.textBaseline="middle";
+      ctx.font=`${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`;
+      ctx.fillStyle=text.classList.contains("arc-label-adj")?"#223029":"#52605a";
+      if("letterSpacing" in ctx)ctx.letterSpacing=st.letterSpacing||"0px";
+      ctx.fillText(textPath.textContent||"",0,0);
+      ctx.restore();
+    });
+  }
+
+  async function drawSvgFrame(svg,ctx){
+    const xml=new XMLSerializer().serializeToString(prepareSvgClone(svg)),blob=new Blob([xml],{type:"image/svg+xml;charset=utf-8"}),url=URL.createObjectURL(blob);
+    try{const im=new Image();im.src=url;await im.decode();ctx.fillStyle="#fff";ctx.fillRect(0,0,SIZE,SIZE);ctx.drawImage(im,0,0,SIZE,SIZE);drawCanvasLabels(svg,ctx);}finally{URL.revokeObjectURL(url);}
+  }
 
   async function exportVideo(){
     if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream){alert("Video export is not supported by this browser. Please try the latest Chrome or Safari.");return;}
