@@ -41,9 +41,8 @@
     if(spiral){const s=sourceSvg.querySelector("#spiral"),st=s.ownerDocument.defaultView.getComputedStyle(s);spiral.removeAttribute("filter");spiral.style.filter="none";spiral.setAttribute("stroke",st.stroke||"#e0b62a");spiral.style.stroke=st.stroke||"#e0b62a";spiral.setAttribute("stroke-opacity",st.strokeOpacity||".86");spiral.style.strokeOpacity=st.strokeOpacity||".86";spiral.setAttribute("stroke-width","8");spiral.style.strokeWidth="8px";}
     if(under){const s=sourceSvg.querySelector("#spiralUnder"),st=s.ownerDocument.defaultView.getComputedStyle(s);under.removeAttribute("filter");under.style.filter="none";under.setAttribute("stroke",st.stroke||"#e0b62a");under.style.stroke=st.stroke||"#e0b62a";under.setAttribute("stroke-opacity",st.strokeOpacity||".16");under.style.strokeOpacity=st.strokeOpacity||".16";under.setAttribute("stroke-width","12");under.style.strokeWidth="12px";}
     if(dot){const s=sourceSvg.querySelector("#stopDot"),st=s.ownerDocument.defaultView.getComputedStyle(s);dot.removeAttribute("filter");dot.style.filter="none";dot.setAttribute("fill",st.fill||"#e0b62a");dot.style.fill=st.fill||"#e0b62a";dot.setAttribute("opacity",st.opacity||"0");dot.style.opacity=st.opacity||"0";}
-    // Labels are intentionally omitted from the SVG image. They are drawn on
-    // the canvas afterwards so complex scripts use the browser's normal text
-    // shaping engine instead of SVG-as-image shaping (which breaks Thai in Safari).
+    // Labels are drawn separately on canvas. This avoids Safari's SVG-image
+    // shaping bug for complex scripts while retaining the live SVG geometry.
     clone.querySelector("#labels")?.remove();
     clone.querySelector("#labelPaths")?.remove();
     clone.setAttribute("viewBox",EXPORT_VIEWBOX_STRING);clone.setAttribute("width",SIZE);clone.setAttribute("height",SIZE);clone.setAttribute("xmlns","http://www.w3.org/2000/svg");clone.setAttribute("xmlns:xlink","http://www.w3.org/1999/xlink");clone.querySelectorAll("[tabindex]").forEach(e=>e.removeAttribute("tabindex"));return clone;
@@ -53,22 +52,46 @@
     return {x:(p.x-EXPORT_VIEWBOX.x)*(SIZE/EXPORT_VIEWBOX.width),y:(p.y-EXPORT_VIEWBOX.y)*(SIZE/EXPORT_VIEWBOX.height)};
   }
 
+  function graphemes(text,lang){
+    if(typeof Intl!=="undefined"&&Intl.Segmenter){
+      try{return [...new Intl.Segmenter(lang||undefined,{granularity:"grapheme"}).segment(text)].map(s=>s.segment);}catch(e){}
+    }
+    return Array.from(text);
+  }
+
   function drawCanvasLabels(sourceSvg,ctx){
     const doc=sourceSvg.ownerDocument;
+    const lang=doc.documentElement.lang||new URLSearchParams(location.search).get("lang")||"en";
     sourceSvg.querySelectorAll("#labels text").forEach(text=>{
       const textPath=text.querySelector("textPath");if(!textPath)return;
       const href=textPath.getAttribute("href")||textPath.getAttribute("xlink:href");if(!href)return;
       const path=doc.getElementById(href.replace(/^#/,""));if(!path)return;
-      const length=path.getTotalLength();if(!length)return;
-      const mid=length/2,delta=Math.min(2,Math.max(.5,length/200));
-      const p=path.getPointAtLength(mid),p0=path.getPointAtLength(Math.max(0,mid-delta)),p1=path.getPointAtLength(Math.min(length,mid+delta));
-      const cp=svgToCanvasPoint(p),angle=Math.atan2(p1.y-p0.y,p1.x-p0.x),st=doc.defaultView.getComputedStyle(text);
+      const pathLength=path.getTotalLength();if(!pathLength)return;
+      const st=doc.defaultView.getComputedStyle(text);
       const fontSize=parseFloat(st.fontSize)||34,fontWeight=st.fontWeight||"400",fontStyle=st.fontStyle||"normal",fontFamily=st.fontFamily||"sans-serif";
-      ctx.save();ctx.translate(cp.x,cp.y);ctx.rotate(angle);ctx.textAlign="center";ctx.textBaseline="middle";
+      const spacing=parseFloat(st.letterSpacing)||0;
+      const clusters=graphemes(textPath.textContent||"",lang);if(!clusters.length)return;
+
+      ctx.save();
       ctx.font=`${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`;
+      ctx.textAlign="center";ctx.textBaseline="middle";
       ctx.fillStyle=text.classList.contains("arc-label-adj")?"#223029":"#52605a";
-      if("letterSpacing" in ctx)ctx.letterSpacing=st.letterSpacing||"0px";
-      ctx.fillText(textPath.textContent||"",0,0);
+
+      // Measure the shaped grapheme clusters first, then centre the complete
+      // line on exactly the same SVG path used by the live textPath.
+      const widths=clusters.map(g=>ctx.measureText(g).width);
+      const totalWidth=widths.reduce((a,b)=>a+b,0)+Math.max(0,clusters.length-1)*spacing;
+      let cursor=Math.max(0,(pathLength-totalWidth)/2);
+
+      clusters.forEach((cluster,i)=>{
+        const w=widths[i];
+        const at=Math.max(0,Math.min(pathLength,cursor+w/2));
+        const delta=Math.min(1.5,Math.max(.35,pathLength/500));
+        const p=path.getPointAtLength(at),p0=path.getPointAtLength(Math.max(0,at-delta)),p1=path.getPointAtLength(Math.min(pathLength,at+delta));
+        const cp=svgToCanvasPoint(p),angle=Math.atan2(p1.y-p0.y,p1.x-p0.x);
+        ctx.save();ctx.translate(cp.x,cp.y);ctx.rotate(angle);ctx.fillText(cluster,0,0);ctx.restore();
+        cursor+=w+spacing;
+      });
       ctx.restore();
     });
   }
