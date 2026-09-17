@@ -41,52 +41,44 @@
     if(spiral){const s=sourceSvg.querySelector("#spiral"),st=s.ownerDocument.defaultView.getComputedStyle(s);spiral.removeAttribute("filter");spiral.style.filter="none";spiral.setAttribute("stroke",st.stroke||"#e0b62a");spiral.style.stroke=st.stroke||"#e0b62a";spiral.setAttribute("stroke-opacity",st.strokeOpacity||".86");spiral.style.strokeOpacity=st.strokeOpacity||".86";spiral.setAttribute("stroke-width","8");spiral.style.strokeWidth="8px";}
     if(under){const s=sourceSvg.querySelector("#spiralUnder"),st=s.ownerDocument.defaultView.getComputedStyle(s);under.removeAttribute("filter");under.style.filter="none";under.setAttribute("stroke",st.stroke||"#e0b62a");under.style.stroke=st.stroke||"#e0b62a";under.setAttribute("stroke-opacity",st.strokeOpacity||".16");under.style.strokeOpacity=st.strokeOpacity||".16";under.setAttribute("stroke-width","12");under.style.strokeWidth="12px";}
     if(dot){const s=sourceSvg.querySelector("#stopDot"),st=s.ownerDocument.defaultView.getComputedStyle(s);dot.removeAttribute("filter");dot.style.filter="none";dot.setAttribute("fill",st.fill||"#e0b62a");dot.style.fill=st.fill||"#e0b62a";dot.setAttribute("opacity",st.opacity||"0");dot.style.opacity=st.opacity||"0";}
-    // Labels are drawn separately on canvas. This avoids Safari's SVG-image
-    // shaping bug for complex scripts while retaining the live SVG geometry.
     clone.querySelector("#labels")?.remove();
     clone.querySelector("#labelPaths")?.remove();
     clone.setAttribute("viewBox",EXPORT_VIEWBOX_STRING);clone.setAttribute("width",SIZE);clone.setAttribute("height",SIZE);clone.setAttribute("xmlns","http://www.w3.org/2000/svg");clone.setAttribute("xmlns:xlink","http://www.w3.org/1999/xlink");clone.querySelectorAll("[tabindex]").forEach(e=>e.removeAttribute("tabindex"));return clone;
   }
 
-  function svgToCanvasPoint(p){
-    return {x:(p.x-EXPORT_VIEWBOX.x)*(SIZE/EXPORT_VIEWBOX.width),y:(p.y-EXPORT_VIEWBOX.y)*(SIZE/EXPORT_VIEWBOX.height)};
-  }
+  function svgToCanvasPoint(p){return {x:(p.x-EXPORT_VIEWBOX.x)*(SIZE/EXPORT_VIEWBOX.width),y:(p.y-EXPORT_VIEWBOX.y)*(SIZE/EXPORT_VIEWBOX.height)};}
 
   function makeShapedLine(text,st,fill){
-    const fontSize=parseFloat(st.fontSize)||34;
-    const fontWeight=st.fontWeight||"400",fontStyle=st.fontStyle||"normal",fontFamily=st.fontFamily||"sans-serif";
-    const pad=Math.ceil(fontSize*1.1),probe=document.createElement("canvas"),pctx=probe.getContext("2d");
-    pctx.font=`${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`;
-    const metrics=pctx.measureText(text),left=Math.ceil(metrics.actualBoundingBoxLeft||0),right=Math.ceil(metrics.actualBoundingBoxRight||metrics.width);
-    const ascent=Math.ceil(metrics.actualBoundingBoxAscent||fontSize*.9),descent=Math.ceil(metrics.actualBoundingBoxDescent||fontSize*.35);
-    const width=Math.max(1,left+right+pad*2),height=Math.max(1,ascent+descent+pad*2);
+    const fontSize=parseFloat(st.fontSize)||34,fontWeight=st.fontWeight||"400",fontStyle=st.fontStyle||"normal",fontFamily=st.fontFamily||"sans-serif";
+    // Shape at 2x resolution, then bend sub-pixel strips. This gives the warp
+    // substantially more source detail without changing the apparent font size.
+    const SCALE=2,pad=Math.ceil(fontSize*1.25),probe=document.createElement("canvas"),pctx=probe.getContext("2d");
+    pctx.font=`${fontStyle} ${fontWeight} ${fontSize*SCALE}px ${fontFamily}`;
+    const metrics=pctx.measureText(text),left=Math.ceil(metrics.actualBoundingBoxLeft||0),right=Math.ceil(metrics.actualBoundingBoxRight||metrics.width),ascent=Math.ceil(metrics.actualBoundingBoxAscent||fontSize*SCALE*.9),descent=Math.ceil(metrics.actualBoundingBoxDescent||fontSize*SCALE*.35);
+    const padPx=pad*SCALE,width=Math.max(1,left+right+padPx*2),height=Math.max(1,ascent+descent+padPx*2);
     probe.width=width;probe.height=height;
-    const ctx=probe.getContext("2d");ctx.font=`${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`;ctx.textAlign="left";ctx.textBaseline="alphabetic";ctx.fillStyle=fill;
-    // Draw the complete line in one operation. Complex-script shaping therefore
-    // happens once, with all neighbouring characters present, before we bend pixels.
-    ctx.fillText(text,pad+left,pad+ascent);
-    return {canvas:probe,width,height,inkStart:pad,inkWidth:left+right,baseline:pad+ascent,fontSize};
+    const ctx=probe.getContext("2d");ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";ctx.font=`${fontStyle} ${fontWeight} ${fontSize*SCALE}px ${fontFamily}`;ctx.textAlign="left";ctx.textBaseline="alphabetic";ctx.fillStyle=fill;
+    ctx.fillText(text,padPx+left,padPx+ascent);
+    return {canvas:probe,scale:SCALE,inkStart:padPx,inkWidth:left+right,baseline:padPx+ascent,height,fontSize};
   }
 
   function drawShapedLineOnPath(ctx,path,shaped){
-    const pathLength=path.getTotalLength();if(!pathLength||!shaped.inkWidth)return;
-    const start=Math.max(0,(pathLength-shaped.inkWidth)/2);
-    // Bend the already-shaped line in narrow pixel strips. A two-pixel strip is
-    // visually continuous at export resolution while never re-shaping the text.
-    const strip=2;
-    for(let x=0;x<shaped.inkWidth;x+=strip){
-      const sw=Math.min(strip,shaped.inkWidth-x),at=Math.max(0,Math.min(pathLength,start+x+sw/2));
-      const delta=Math.min(1.25,Math.max(.3,pathLength/600));
-      const p=path.getPointAtLength(at),p0=path.getPointAtLength(Math.max(0,at-delta)),p1=path.getPointAtLength(Math.min(pathLength,at+delta));
-      const cp=svgToCanvasPoint(p),angle=Math.atan2(p1.y-p0.y,p1.x-p0.x);
+    const pathLength=path.getTotalLength(),visualWidth=shaped.inkWidth/shaped.scale;if(!pathLength||!visualWidth)return;
+    const start=Math.max(0,(pathLength-visualWidth)/2);
+    // Half a destination pixel per strip, sourced from the 2x shaped line.
+    // Adjacent strips overlap slightly to eliminate hairline seams after rotation.
+    const destStrip=.5,sourceStrip=destStrip*shaped.scale,overlap=.18;
+    for(let sx=0;sx<shaped.inkWidth;sx+=sourceStrip){
+      const sourceWidth=Math.min(sourceStrip+overlap*shaped.scale,shaped.inkWidth-sx),visualX=sx/shaped.scale,visualStrip=Math.min(destStrip+overlap,visualWidth-visualX),at=Math.max(0,Math.min(pathLength,start+visualX+visualStrip/2));
+      const delta=.35,p=path.getPointAtLength(at),p0=path.getPointAtLength(Math.max(0,at-delta)),p1=path.getPointAtLength(Math.min(pathLength,at+delta)),cp=svgToCanvasPoint(p),angle=Math.atan2(p1.y-p0.y,p1.x-p0.x);
       ctx.save();ctx.translate(cp.x,cp.y);ctx.rotate(angle);
-      ctx.drawImage(shaped.canvas,shaped.inkStart+x,0,sw,shaped.height,-sw/2,-shaped.baseline,sw,shaped.height);
+      ctx.drawImage(shaped.canvas,shaped.inkStart+sx,0,sourceWidth,shaped.height,-visualStrip/2,-shaped.baseline/shaped.scale,visualStrip,shaped.height/shaped.scale);
       ctx.restore();
     }
   }
 
   function drawCanvasLabels(sourceSvg,ctx){
-    const doc=sourceSvg.ownerDocument;
+    const doc=sourceSvg.ownerDocument;ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";
     sourceSvg.querySelectorAll("#labels text").forEach(text=>{
       const textPath=text.querySelector("textPath");if(!textPath)return;
       const href=textPath.getAttribute("href")||textPath.getAttribute("xlink:href");if(!href)return;
@@ -110,7 +102,7 @@
       const doc=iframe.contentDocument,svg=doc.getElementById("viz"),api=iframe.contentWindow.NCDPotPlantExport;if(!svg||!api)throw new Error("Could not initialise deterministic video renderer.");
       if(doc.fonts?.ready)await doc.fonts.ready;
       api.hideControls();api.setWedgeOpacity(0);api.setSpiralProgress(0);api.setSpiralTone("gold");
-      const canvas=document.createElement("canvas");canvas.width=SIZE;canvas.height=SIZE;const ctx=canvas.getContext("2d",{alpha:false});stream=canvas.captureStream(FPS);const format=chooseRecordingFormat(),chunks=[];
+      const canvas=document.createElement("canvas");canvas.width=SIZE;canvas.height=SIZE;const ctx=canvas.getContext("2d",{alpha:false});ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";stream=canvas.captureStream(FPS);const format=chooseRecordingFormat(),chunks=[];
       recorder=new MediaRecorder(stream,format.mime?{mimeType:format.mime,videoBitsPerSecond:8_000_000}:{videoBitsPerSecond:8_000_000});recorder.addEventListener("dataavailable",e=>{if(e.data?.size)chunks.push(e.data);});const stopped=new Promise(r=>recorder.addEventListener("stop",r,{once:true}));
       await drawSvgFrame(svg,ctx);recorder.start(250);let frameNumber=0,start=performance.now();
       async function commitFrame(){await drawSvgFrame(svg,ctx);frameNumber++;const target=start+frameNumber*FRAME_MS,delay=target-performance.now();if(delay>0)await sleep(delay);}
