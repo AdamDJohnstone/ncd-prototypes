@@ -4,7 +4,7 @@ window.NCD_POT_PLANT_LANGUAGES =
 window.NCD_POT_PLANT_LANGUAGES.de = {
   code: "de",
   name: "Deutsch",
-  labelScale: 0.8,
+  labelScale: 0.9,
 
   interface: {
     playgroundTitle: "NCD Blumentopf-Spielwiese",
@@ -40,7 +40,8 @@ window.NCD_POT_PLANT_LANGUAGES.de = {
     EL: {
       name: "Bevollmächtigende Leitung",
       lines: [
-        { text: "Bevollmächtigende", emphasis: true },
+        { text: "Bevollmächti-", emphasis: true },
+        { text: "gende", emphasis: true },
         { text: "Leitung", emphasis: false }
       ],
       heartQuestion: "Glaubt ihr wirklich an mich?",
@@ -62,7 +63,8 @@ window.NCD_POT_PLANT_LANGUAGES.de = {
     GBM: {
       name: "Gabenorientierte Mitarbeiterschaft",
       lines: [
-        { text: "Gabenorientierte", emphasis: true },
+        { text: "Gaben-", emphasis: true },
+        { text: "orientierte", emphasis: true },
         { text: "Mitarbeiterschaft", emphasis: false }
       ],
       heartQuestion: "Habe ich wirklich etwas beizutragen?",
@@ -73,7 +75,8 @@ window.NCD_POT_PLANT_LANGUAGES.de = {
     NOE: {
       name: "Bedürfnisorientierte Evangelisation",
       lines: [
-        { text: "Bedürfnisorientierte", emphasis: true },
+        { text: "Bedürfnis-", emphasis: true },
+        { text: "orientierte", emphasis: true },
         { text: "Evangelisation", emphasis: false }
       ],
       heartQuestion: "Interessiert ihr euch wirklich für mich?",
@@ -95,7 +98,8 @@ window.NCD_POT_PLANT_LANGUAGES.de = {
     PS: {
       name: "Leidenschaftliche Spiritualität",
       lines: [
-        { text: "Leidenschaftliche", emphasis: true },
+        { text: "Leidenschaft-", emphasis: true },
+        { text: "liche", emphasis: true },
         { text: "Spiritualität", emphasis: false }
       ],
       heartQuestion: "Vertraue ich Gott wirklich?",
