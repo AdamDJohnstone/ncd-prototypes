@@ -59,7 +59,8 @@ window.NCD_POT_PLANT_LANGUAGES.nb = {
     GBM: {
       name: "Nådegavebasert tjeneste",
       lines: [
-        { text: "Nådegavebasert", emphasis: true },
+        { text: "Nådegave-", emphasis: true },
+        { text: "basert", emphasis: true },
         { text: "tjeneste", emphasis: false }
       ],
       heartQuestion: "Har jeg virkelig noe å bidra med?",
@@ -98,7 +99,7 @@ window.NCD_POT_PLANT_LANGUAGES.nb = {
       ],
       heartQuestion: "Stoler jeg virkelig på Gud?",
       description:
-        "Et engasjert trosliv vokser der troen leves ut fra en ekte og livgivende relasjon til Gud."
+        "Et engasjert trosliv vokser der troen leves ut fra en ekte og livgivende Beziehung til Gud."
     },
 
     HSG: {
