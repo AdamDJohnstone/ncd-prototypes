@@ -7,13 +7,32 @@
   const INITIAL_FRAMES=Math.round(.35*FPS),REVEAL_FRAMES=FPS,SPIRAL_FRAMES=10*FPS,GOLD_FRAMES=Math.round(.5*FPS),FINAL_FRAMES=FPS;
   const FRAME_MS=1000/FPS;
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-  function chooseMimeType(){return ["video/mp4;codecs=h264","video/mp4","video/webm;codecs=vp9","video/webm;codecs=vp8","video/webm"].find(t=>MediaRecorder.isTypeSupported(t))||"";}
+
+  function isSafari(){
+    const ua=navigator.userAgent;
+    return /Safari\//.test(ua)&&!/Chrome\//.test(ua)&&!/Chromium\//.test(ua)&&!/Edg\//.test(ua)&&!/OPR\//.test(ua);
+  }
+  function chooseRecordingFormat(){
+    // Safari's MediaRecorder produces a conventional H.264 MP4. Chromium can
+    // claim MP4 support while writing VP9 into the MP4 container, which is not
+    // reliably playable in QuickTime, Keynote or PowerPoint. Never label that
+    // Chromium output as a presentation-compatible MP4.
+    if(isSafari()){
+      const mp4Types=["video/mp4;codecs=avc1.42E01E","video/mp4;codecs=avc1","video/mp4"];
+      const mime=mp4Types.find(t=>MediaRecorder.isTypeSupported(t));
+      if(mime)return {mime,ext:"mp4",label:"MP4"};
+    }
+    const webmTypes=["video/webm;codecs=vp9","video/webm;codecs=vp8","video/webm"];
+    const mime=webmTypes.find(t=>MediaRecorder.isTypeSupported(t));
+    if(mime)return {mime,ext:"webm",label:"WebM"};
+    return {mime:"",ext:"webm",label:"WebM"};
+  }
   function makeViewerUrl(){const c=new URLSearchParams(location.search),v=new URLSearchParams();if(c.get("scores"))v.set("scores",c.get("scores"));v.set("lang",c.get("lang")||"en");return `/ncd-prototypes/pot-plant/view/?${v}`;}
   function makeHiddenViewer(){const f=document.createElement("iframe");f.src=makeViewerUrl();f.setAttribute("aria-hidden","true");Object.assign(f.style,{position:"fixed",left:"-1200px",top:"0",width:"1080px",height:"1080px",border:"0",pointerEvents:"none",opacity:"1"});document.body.appendChild(f);return f;}
   function waitForLoad(f){return new Promise((res,rej)=>{const t=setTimeout(()=>rej(new Error("Viewer took too long to load.")),10000);f.addEventListener("load",()=>{clearTimeout(t);res();},{once:true});});}
   function safeFilenamePart(value){return value.trim().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/&/g," and ").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");}
   function exportBaseName(){const lang=new URLSearchParams(location.search).get("lang")||"en",church=safeFilenamePart(churchNameInput?.value||"");return `${church?church+"-":""}ncd-pot-plant-${lang}`;}
-  function updateFilenamePreview(){if(filenamePreview)filenamePreview.textContent=`${exportBaseName()}.mp4`;}
+  function updateFilenamePreview(){if(filenamePreview){const format=window.MediaRecorder?chooseRecordingFormat():{ext:"mp4"};filenamePreview.textContent=`${exportBaseName()}.${format.ext}`;}}
   churchNameInput?.addEventListener("input",updateFilenamePreview);updateFilenamePreview();
 
   function prepareSvgClone(sourceSvg){
@@ -39,8 +58,8 @@
       const doc=iframe.contentDocument,svg=doc.getElementById("viz"),api=iframe.contentWindow.NCDPotPlantExport;if(!svg||!api)throw new Error("Could not initialise deterministic video renderer.");
       if(doc.fonts?.ready)await doc.fonts.ready;
       api.hideControls();api.setWedgeOpacity(0);api.setSpiralProgress(0);api.setSpiralTone("gold");
-      const canvas=document.createElement("canvas");canvas.width=SIZE;canvas.height=SIZE;const ctx=canvas.getContext("2d",{alpha:false});stream=canvas.captureStream(FPS);const mime=chooseMimeType(),chunks=[];
-      recorder=new MediaRecorder(stream,mime?{mimeType:mime,videoBitsPerSecond:8_000_000}:{videoBitsPerSecond:8_000_000});recorder.addEventListener("dataavailable",e=>{if(e.data?.size)chunks.push(e.data);});const stopped=new Promise(r=>recorder.addEventListener("stop",r,{once:true}));
+      const canvas=document.createElement("canvas");canvas.width=SIZE;canvas.height=SIZE;const ctx=canvas.getContext("2d",{alpha:false});stream=canvas.captureStream(FPS);const format=chooseRecordingFormat(),chunks=[];
+      recorder=new MediaRecorder(stream,format.mime?{mimeType:format.mime,videoBitsPerSecond:8_000_000}:{videoBitsPerSecond:8_000_000});recorder.addEventListener("dataavailable",e=>{if(e.data?.size)chunks.push(e.data);});const stopped=new Promise(r=>recorder.addEventListener("stop",r,{once:true}));
       await drawSvgFrame(svg,ctx);recorder.start(250);let frameNumber=0,start=performance.now();
       async function commitFrame(){await drawSvgFrame(svg,ctx);frameNumber++;const target=start+frameNumber*FRAME_MS,delay=target-performance.now();if(delay>0)await sleep(delay);}
       exportBtn.textContent="Rendering video…";
@@ -50,8 +69,8 @@
       for(let i=1;i<=SPIRAL_FRAMES;i++){const t=i/SPIRAL_FRAMES,easedProgress=1-Math.pow(1-t,3.2);api.setSpiralProgress(easedProgress);await commitFrame();}
       api.setSpiralProgress(1);api.setSpiralTone("gold");for(let i=0;i<GOLD_FRAMES+FINAL_FRAMES;i++)await commitFrame();
       recorder.stop();await stopped;stream.getTracks().forEach(t=>t.stop());
-      const type=recorder.mimeType||mime||"video/webm",ext=type.includes("mp4")?"mp4":"webm",output=new Blob(chunks,{type}),url=URL.createObjectURL(output),a=document.createElement("a");a.href=url;a.download=`${exportBaseName()}.${ext}`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);exportBtn.textContent=ext==="mp4"?"MP4 exported":"Video exported (WebM)";setTimeout(()=>exportBtn.textContent=original,2500);
-    }catch(error){console.error("NCD Pot Plant video export failed:",error);alert(`Video export failed: ${error.message}`);exportBtn.textContent=original;if(recorder&&recorder.state!=="inactive")recorder.stop();}finally{if(stream)stream.getTracks().forEach(t=>t.stop());if(iframe)iframe.remove();exportBtn.disabled=false;}
+      const actualType=recorder.mimeType||format.mime||"video/webm",output=new Blob(chunks,{type:actualType}),url=URL.createObjectURL(output),a=document.createElement("a");a.href=url;a.download=`${exportBaseName()}.${format.ext}`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);exportBtn.textContent=format.ext==="mp4"?"MP4 exported":"Video exported (WebM)";setTimeout(()=>exportBtn.textContent=original,2500);
+    }catch(error){console.error("NCD Pot Plant video export failed:",error);alert(`Video export failed: ${error.message}`);exportBtn.textContent=original;if(recorder&&recorder.state!=="inactive")recorder.stop();}finally{if(stream)stream.getTracks().forEach(t=>t.stop());if(iframe)iframe.remove();exportBtn.disabled=false;updateFilenamePreview();}
   }
   exportBtn.addEventListener("click",exportVideo);
 })();
