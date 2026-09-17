@@ -11,7 +11,7 @@ window.NCD_POT_PLANT_LANGUAGES.th = {
   code: "th",
   name: "ไทย",
   labelScale: 1.0,
-  labelLineSpacing: 1.15,
+  labelLineSpacing: 1.4,
   labelLanguage: "th",
   labelFontFamily: 'Tahoma, "Noto Sans Thai", "Leelawadee UI", sans-serif',
   labelLetterSpacing: 0,
