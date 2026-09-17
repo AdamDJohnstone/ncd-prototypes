@@ -4,7 +4,7 @@ window.NCD_POT_PLANT_LANGUAGES =
 window.NCD_POT_PLANT_LANGUAGES.nb = {
   code: "nb",
   name: "Norsk (bokmål)",
-  labelScale: 0.88,
+  labelScale: 1.0,
 
   interface: {
     playgroundTitle: "NCD Pot Plant-lekeplass",
