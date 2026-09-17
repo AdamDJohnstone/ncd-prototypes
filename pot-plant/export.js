@@ -52,47 +52,48 @@
     return {x:(p.x-EXPORT_VIEWBOX.x)*(SIZE/EXPORT_VIEWBOX.width),y:(p.y-EXPORT_VIEWBOX.y)*(SIZE/EXPORT_VIEWBOX.height)};
   }
 
-  function graphemes(text,lang){
-    if(typeof Intl!=="undefined"&&Intl.Segmenter){
-      try{return [...new Intl.Segmenter(lang||undefined,{granularity:"grapheme"}).segment(text)].map(s=>s.segment);}catch(e){}
+  function makeShapedLine(text,st,fill){
+    const fontSize=parseFloat(st.fontSize)||34;
+    const fontWeight=st.fontWeight||"400",fontStyle=st.fontStyle||"normal",fontFamily=st.fontFamily||"sans-serif";
+    const pad=Math.ceil(fontSize*1.1),probe=document.createElement("canvas"),pctx=probe.getContext("2d");
+    pctx.font=`${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`;
+    const metrics=pctx.measureText(text),left=Math.ceil(metrics.actualBoundingBoxLeft||0),right=Math.ceil(metrics.actualBoundingBoxRight||metrics.width);
+    const ascent=Math.ceil(metrics.actualBoundingBoxAscent||fontSize*.9),descent=Math.ceil(metrics.actualBoundingBoxDescent||fontSize*.35);
+    const width=Math.max(1,left+right+pad*2),height=Math.max(1,ascent+descent+pad*2);
+    probe.width=width;probe.height=height;
+    const ctx=probe.getContext("2d");ctx.font=`${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`;ctx.textAlign="left";ctx.textBaseline="alphabetic";ctx.fillStyle=fill;
+    // Draw the complete line in one operation. Complex-script shaping therefore
+    // happens once, with all neighbouring characters present, before we bend pixels.
+    ctx.fillText(text,pad+left,pad+ascent);
+    return {canvas:probe,width,height,inkStart:pad,inkWidth:left+right,baseline:pad+ascent,fontSize};
+  }
+
+  function drawShapedLineOnPath(ctx,path,shaped){
+    const pathLength=path.getTotalLength();if(!pathLength||!shaped.inkWidth)return;
+    const start=Math.max(0,(pathLength-shaped.inkWidth)/2);
+    // Bend the already-shaped line in narrow pixel strips. A two-pixel strip is
+    // visually continuous at export resolution while never re-shaping the text.
+    const strip=2;
+    for(let x=0;x<shaped.inkWidth;x+=strip){
+      const sw=Math.min(strip,shaped.inkWidth-x),at=Math.max(0,Math.min(pathLength,start+x+sw/2));
+      const delta=Math.min(1.25,Math.max(.3,pathLength/600));
+      const p=path.getPointAtLength(at),p0=path.getPointAtLength(Math.max(0,at-delta)),p1=path.getPointAtLength(Math.min(pathLength,at+delta));
+      const cp=svgToCanvasPoint(p),angle=Math.atan2(p1.y-p0.y,p1.x-p0.x);
+      ctx.save();ctx.translate(cp.x,cp.y);ctx.rotate(angle);
+      ctx.drawImage(shaped.canvas,shaped.inkStart+x,0,sw,shaped.height,-sw/2,-shaped.baseline,sw,shaped.height);
+      ctx.restore();
     }
-    return Array.from(text);
   }
 
   function drawCanvasLabels(sourceSvg,ctx){
     const doc=sourceSvg.ownerDocument;
-    const lang=doc.documentElement.lang||new URLSearchParams(location.search).get("lang")||"en";
     sourceSvg.querySelectorAll("#labels text").forEach(text=>{
       const textPath=text.querySelector("textPath");if(!textPath)return;
       const href=textPath.getAttribute("href")||textPath.getAttribute("xlink:href");if(!href)return;
       const path=doc.getElementById(href.replace(/^#/,""));if(!path)return;
-      const pathLength=path.getTotalLength();if(!pathLength)return;
-      const st=doc.defaultView.getComputedStyle(text);
-      const fontSize=parseFloat(st.fontSize)||34,fontWeight=st.fontWeight||"400",fontStyle=st.fontStyle||"normal",fontFamily=st.fontFamily||"sans-serif";
-      const spacing=parseFloat(st.letterSpacing)||0;
-      const clusters=graphemes(textPath.textContent||"",lang);if(!clusters.length)return;
-
-      ctx.save();
-      ctx.font=`${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`;
-      ctx.textAlign="center";ctx.textBaseline="middle";
-      ctx.fillStyle=text.classList.contains("arc-label-adj")?"#223029":"#52605a";
-
-      // Measure the shaped grapheme clusters first, then centre the complete
-      // line on exactly the same SVG path used by the live textPath.
-      const widths=clusters.map(g=>ctx.measureText(g).width);
-      const totalWidth=widths.reduce((a,b)=>a+b,0)+Math.max(0,clusters.length-1)*spacing;
-      let cursor=Math.max(0,(pathLength-totalWidth)/2);
-
-      clusters.forEach((cluster,i)=>{
-        const w=widths[i];
-        const at=Math.max(0,Math.min(pathLength,cursor+w/2));
-        const delta=Math.min(1.5,Math.max(.35,pathLength/500));
-        const p=path.getPointAtLength(at),p0=path.getPointAtLength(Math.max(0,at-delta)),p1=path.getPointAtLength(Math.min(pathLength,at+delta));
-        const cp=svgToCanvasPoint(p),angle=Math.atan2(p1.y-p0.y,p1.x-p0.x);
-        ctx.save();ctx.translate(cp.x,cp.y);ctx.rotate(angle);ctx.fillText(cluster,0,0);ctx.restore();
-        cursor+=w+spacing;
-      });
-      ctx.restore();
+      const value=textPath.textContent||"";if(!value)return;
+      const st=doc.defaultView.getComputedStyle(text),fill=text.classList.contains("arc-label-adj")?"#223029":"#52605a";
+      drawShapedLineOnPath(ctx,path,makeShapedLine(value,st,fill));
     });
   }
 
