@@ -5,8 +5,8 @@
   const INPUT_QC_KEYS=["EL","GBM","PS","ES","IWS","HSG","NOE","LR"],DIAGRAM_QC_KEYS=["LR","EL","ES","GBM","NOE","IWS","PS","HSG"],INPUT_QCS=INPUT_QC_KEYS.map(key=>({key,...language.qcs[key]})),DIAGRAM_QCS=DIAGRAM_QC_KEYS.map(key=>({key,...language.qcs[key]})),DEFAULT_INPUT_SCORES=[67,52,62,59,71,74,43,78],fills=["#477B39","#727145","#926550","#9A5C5E","#786071","#526082","#436777","#44725C"];
   const svg=document.getElementById("viz");if(!svg)return;const svgDefs=svg.querySelector("defs"),wedgesG=document.getElementById("wedges"),labelPathsG=document.getElementById("labelPaths"),labelsG=document.getElementById("labels"),spiralPath=document.getElementById("spiral"),spiralUnder=document.getElementById("spiralUnder"),stopDot=document.getElementById("stopDot");
   const cx=440,cy=440,sectorDeg=45,startDeg=-112.5,minRadius=108,rankStep=36,maxRadius=minRadius+7*rankStep,radialGrowthPerTurn=33,b=radialGrowthPerTurn/(2*Math.PI),animationDurationMs=10000;
-  /* Every label, whether 2, 3 or 4 lines, is centred on this same radius. */
-  const labelClusterRadius=maxRadius+60,labelLineGap=34;
+  /* Every label, whether 2, 3 or 4 lines, is centred on this same radius. Languages can widen the line gap without changing that common centre. */
+  const labelClusterRadius=maxRadius+60,labelLineGap=34,labelLineSpacing=language.labelLineSpacing??1;
   let inputScores=readScoresFromUrl()||[...DEFAULT_INPUT_SCORES],spiralPoints=[],animationFrame=null;
   function fullName(qc){return qc.name;}
   function applyInterfaceLanguage(){document.querySelectorAll("[data-i18n]").forEach(el=>{const key=el.getAttribute("data-i18n");if(language.interface[key]!==undefined)el.textContent=language.interface[key];});}
@@ -36,7 +36,7 @@
       /* Keep the visual centre of every cluster at one common radius. On the bottom half the radial order is reversed so the linguistic reading order remains top-to-bottom. */
       const centreIndex=(lines.length-1)/2;
       lines.forEach((line,lineIndex)=>{
-        const offset=(centreIndex-lineIndex)*labelLineGap,radius=labelClusterRadius+(bottom?-offset:offset),arcId=`labelArc${i}_${lineIndex}`,arc=document.createElementNS("http://www.w3.org/2000/svg","path");
+        const offset=(centreIndex-lineIndex)*labelLineGap*labelLineSpacing,radius=labelClusterRadius+(bottom?-offset:offset),arcId=`labelArc${i}_${lineIndex}`,arc=document.createElementNS("http://www.w3.org/2000/svg","path");
         arc.id=arcId;arc.setAttribute("d",arcPath(radius,arcStart,arcEnd,reverse));arc.setAttribute("fill","none");arc.setAttribute("stroke","none");labelPathsG.appendChild(arc);
         const text=document.createElementNS("http://www.w3.org/2000/svg","text");text.setAttribute("class",`${line.emphasis?"arc-label-adj":"arc-label-noun"} qc-clickable`);const baseFontSize=line.emphasis?42:34;text.setAttribute("font-size",String(baseFontSize*(language.labelScale??1)));text.setAttribute("data-qc-index",i);text.setAttribute("tabindex","0");text.setAttribute("role","button");text.addEventListener("click",e=>{e.stopPropagation();openQcCard(i);});text.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openQcCard(i);}});
         const tp=document.createElementNS("http://www.w3.org/2000/svg","textPath");tp.setAttribute("href",`#${arcId}`);tp.setAttribute("startOffset","50%");tp.setAttribute("text-anchor","middle");tp.textContent=line.text;text.appendChild(tp);labelsG.appendChild(text);
