@@ -44,7 +44,8 @@
   async function drawSvgFrame(svg,ctx,labelLayer){const xml=new XMLSerializer().serializeToString(prepareSvgClone(svg)),blob=new Blob([xml],{type:"image/svg+xml;charset=utf-8"}),url=URL.createObjectURL(blob);try{const im=new Image();im.src=url;await im.decode();ctx.fillStyle="#fff";ctx.fillRect(0,0,SIZE,SIZE);ctx.drawImage(im,0,0,SIZE,SIZE);ctx.drawImage(labelLayer,0,0);}finally{URL.revokeObjectURL(url);}}
   async function createMp4Encoder(){
     if(!window.VideoEncoder||!window.VideoFrame||!window.Mp4Muxer)throw new Error("This browser does not support the PowerPoint-compatible MP4 encoder. Please use a current version of Chrome, Edge or Safari.");
-    const config={codec:"avc1.42001f",width:SIZE,height:SIZE,bitrate:8_000_000,framerate:FPS,avc:{format:"avc"}};
+    /* 1080x1080 contains 4,624 H.264 macroblocks, which exceeds Level 3.1's 3,600-frame limit. Safari enforces that limit during encoding even when isConfigSupported() accepts the configuration. Level 4.0 supports this square frame size while remaining broadly PowerPoint-compatible. */
+    const config={codec:"avc1.420028",width:SIZE,height:SIZE,bitrate:8_000_000,framerate:FPS,avc:{format:"avc"}};
     const support=await VideoEncoder.isConfigSupported(config);if(!support.supported)throw new Error("H.264 MP4 encoding is not supported by this browser/device.");
     const target=new Mp4Muxer.ArrayBufferTarget(),muxer=new Mp4Muxer.Muxer({target,video:{codec:"avc",width:SIZE,height:SIZE,frameRate:FPS},fastStart:"in-memory",firstTimestampBehavior:"strict"});
     let encoderError=null;const encoder=new VideoEncoder({output:(chunk,meta)=>muxer.addVideoChunk(chunk,meta),error:e=>{encoderError=e;}});encoder.configure(support.config);
