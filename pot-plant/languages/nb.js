@@ -47,7 +47,8 @@ window.NCD_POT_PLANT_LANGUAGES.nb = {
     ES: {
       name: "Hensiktsmessige strukturer",
       lines: [
-        { text: "Hensiktsmessige", emphasis: true },
+        { text: "Hensikts-", emphasis: true },
+        { text: "messige", emphasis: true },
         { text: "strukturer", emphasis: false }
       ],
       heartQuestion: "Har jeg virkelig rom til å vokse?",
@@ -69,7 +70,8 @@ window.NCD_POT_PLANT_LANGUAGES.nb = {
     NOE: {
       name: "Behovsorientert evangelisering",
       lines: [
-        { text: "Behovsorientert", emphasis: true },
+        { text: "Behovs-", emphasis: true },
+        { text: "orientert", emphasis: true },
         { text: "evangelisering", emphasis: false }
       ],
       heartQuestion: "Bryr dere dere virkelig om meg?",
