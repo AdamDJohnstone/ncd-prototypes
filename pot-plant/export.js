@@ -44,11 +44,16 @@
   async function drawSvgFrame(svg,ctx,labelLayer){const xml=new XMLSerializer().serializeToString(prepareSvgClone(svg)),blob=new Blob([xml],{type:"image/svg+xml;charset=utf-8"}),url=URL.createObjectURL(blob);try{const im=new Image();im.src=url;await im.decode();ctx.fillStyle="#fff";ctx.fillRect(0,0,SIZE,SIZE);ctx.drawImage(im,0,0,SIZE,SIZE);ctx.drawImage(labelLayer,0,0);}finally{URL.revokeObjectURL(url);}}
   async function createMp4Encoder(){
     if(!window.VideoEncoder||!window.VideoFrame||!window.Mp4Muxer)throw new Error("This browser does not support the PowerPoint-compatible MP4 encoder. Please use a current version of Chrome, Edge or Safari.");
-    /* 1080x1080 contains 4,624 H.264 macroblocks, which exceeds Level 3.1's 3,600-frame limit. Safari enforces that limit during encoding even when isConfigSupported() accepts the configuration. Level 4.0 supports this square frame size while remaining broadly PowerPoint-compatible. */
-    const config={codec:"avc1.420028",width:SIZE,height:SIZE,bitrate:8_000_000,framerate:FPS,avc:{format:"avc"}};
-    const support=await VideoEncoder.isConfigSupported(config);if(!support.supported)throw new Error("H.264 MP4 encoding is not supported by this browser/device.");
+    /* Probe conservative H.264 profiles/levels rather than assuming one codec string works everywhere. 1080x1080 needs at least Level 4.0 by macroblock count. Baseline is preferred for maximum PowerPoint compatibility, then Main and High. */
+    const codecCandidates=["avc1.420028","avc1.4d0028","avc1.640028","avc1.42e028","avc1.4d4028","avc1.64002a"];
+    let supported=null;
+    for(const codec of codecCandidates){
+      const candidate={codec,width:SIZE,height:SIZE,bitrate:8_000_000,framerate:FPS,avc:{format:"avc"}};
+      try{const result=await VideoEncoder.isConfigSupported(candidate);if(result.supported){supported=result.config||candidate;break;}}catch(e){}
+    }
+    if(!supported)throw new Error("H.264 MP4 encoding is not supported by this browser/device.");
     const target=new Mp4Muxer.ArrayBufferTarget(),muxer=new Mp4Muxer.Muxer({target,video:{codec:"avc",width:SIZE,height:SIZE,frameRate:FPS},fastStart:"in-memory",firstTimestampBehavior:"strict"});
-    let encoderError=null;const encoder=new VideoEncoder({output:(chunk,meta)=>muxer.addVideoChunk(chunk,meta),error:e=>{encoderError=e;}});encoder.configure(support.config);
+    let encoderError=null;const encoder=new VideoEncoder({output:(chunk,meta)=>muxer.addVideoChunk(chunk,meta),error:e=>{encoderError=e;}});encoder.configure(supported);
     return{async add(canvas,index){if(encoderError)throw encoderError;const timestamp=Math.round(index*1_000_000/FPS),duration=Math.round(1_000_000/FPS),frame=new VideoFrame(canvas,{timestamp,duration});encoder.encode(frame,{keyFrame:index%(FPS*2)===0});frame.close();if(encoder.encodeQueueSize>8)await new Promise(r=>setTimeout(r,0));},async finish(){await encoder.flush();if(encoderError)throw encoderError;encoder.close();muxer.finalize();return new Blob([target.buffer],{type:"video/mp4"});}};
   }
   function downloadBlob(blob,name){const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);}
