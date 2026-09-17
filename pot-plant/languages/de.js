@@ -4,7 +4,7 @@ window.NCD_POT_PLANT_LANGUAGES =
 window.NCD_POT_PLANT_LANGUAGES.de = {
   code: "de",
   name: "Deutsch",
-  labelScale: 0.9,
+  labelScale: 0.94,
 
   interface: {
     playgroundTitle: "NCD Blumentopf-Spielwiese",
