@@ -70,5 +70,14 @@ function controls(id,arr,setter){const el=document.getElementById(id);if(!el)ret
 labels();ensureWedges();controls("beforeScores",before,(i,n)=>before[i]=n);controls("afterScores",after,(i,n)=>after[i]=n);
 document.getElementById("beforeBtn")?.addEventListener("click",showBefore);document.getElementById("afterBtn")?.addEventListener("click",showAfter);
 document.getElementById("languageSelect")?.addEventListener("change",e=>{const q=new URLSearchParams(location.search);q.set("lang",e.target.value);location.search=q});
-const ls=document.getElementById("languageSelect");if(ls)ls.value=langCode;showBefore();
+const ls=document.getElementById("languageSelect");if(ls)ls.value=langCode;
+if(document.body.classList.contains("compare-viewer")){
+  window.NCDPotPlantCompareExport={
+    isBusy:()=>busy,
+    state:()=>current,
+    playAfter:()=>showAfter(),
+    hideControls(){document.querySelector(".compare-nav")?.remove();if(qcCard)qcCard.style.display="none"}
+  };
+}
+showBefore();
 })();
