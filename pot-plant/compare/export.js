@@ -15,10 +15,11 @@
     const clone=sourceSvg.cloneNode(true),src=[sourceSvg,...sourceSvg.querySelectorAll("*")],dst=[clone,...clone.querySelectorAll("*")],props=["fill","fill-opacity","stroke","stroke-opacity","stroke-width","stroke-linecap","stroke-linejoin","opacity","visibility","transform","transform-origin"];
     src.forEach((s,i)=>{const d=dst[i];if(!d||!(s instanceof Element))return;const st=s.ownerDocument.defaultView.getComputedStyle(s);props.forEach(p=>{const v=st.getPropertyValue(p);if(v)d.style.setProperty(p,v);});});
     const liveWedges=sourceSvg.querySelectorAll(".wedge");clone.querySelectorAll(".wedge").forEach((w,i)=>{const st=liveWedges[i].ownerDocument.defaultView.getComputedStyle(liveWedges[i]),o=st.opacity||"0";w.setAttribute("fill",`url(#cg${i})`);w.style.fill=`url(#cg${i})`;w.setAttribute("opacity",o);w.style.opacity=o;});
-    const spiral=clone.querySelector("#spiral"),under=clone.querySelector("#spiralUnder"),dot=clone.querySelector("#stopDot");
+    const spiral=clone.querySelector("#spiral"),under=clone.querySelector("#spiralUnder"),dot=clone.querySelector("#stopDot"),oldDot=clone.querySelector("#oldStopDot");
     if(spiral){const s=sourceSvg.querySelector("#spiral"),st=s.ownerDocument.defaultView.getComputedStyle(s);spiral.removeAttribute("filter");spiral.style.filter="none";spiral.setAttribute("stroke",st.stroke||"#e0b62a");spiral.style.stroke=st.stroke||"#e0b62a";spiral.setAttribute("stroke-opacity",st.strokeOpacity||".86");spiral.style.strokeOpacity=st.strokeOpacity||".86";spiral.setAttribute("stroke-width","8");spiral.style.strokeWidth="8px";}
     if(under){const s=sourceSvg.querySelector("#spiralUnder"),st=s.ownerDocument.defaultView.getComputedStyle(s);under.removeAttribute("filter");under.style.filter="none";under.setAttribute("stroke",st.stroke||"#e0b62a");under.style.stroke=st.stroke||"#e0b62a";under.setAttribute("stroke-opacity",st.strokeOpacity||".16");under.style.strokeOpacity=st.strokeOpacity||".16";under.setAttribute("stroke-width","12");under.style.strokeWidth="12px";}
-    if(dot){const s=sourceSvg.querySelector("#stopDot"),st=s.ownerDocument.defaultView.getComputedStyle(s);dot.removeAttribute("filter");dot.style.filter="none";dot.setAttribute("fill",st.fill||"#e0b62a");dot.style.fill=st.fill||"#e0b62a";dot.setAttribute("opacity",st.opacity||"0");dot.style.opacity=st.opacity||"0";}
+    if(dot){const s=sourceSvg.querySelector("#stopDot"),st=s.ownerDocument.defaultView.getComputedStyle(s);dot.removeAttribute("filter");dot.style.filter="none";dot.setAttribute("fill","#e0b62a");dot.style.fill="#e0b62a";dot.setAttribute("opacity",st.opacity||"0");dot.style.opacity=st.opacity||"0";}
+    if(oldDot){const s=sourceSvg.querySelector("#oldStopDot"),st=s.ownerDocument.defaultView.getComputedStyle(s);oldDot.removeAttribute("filter");oldDot.style.filter="none";oldDot.setAttribute("fill","#e0b62a");oldDot.style.fill="#e0b62a";oldDot.setAttribute("stroke","#ffffff");oldDot.style.stroke="#ffffff";oldDot.setAttribute("stroke-width","4");oldDot.style.strokeWidth="4px";oldDot.setAttribute("opacity",st.opacity||"0");oldDot.style.opacity=st.opacity||"0";}
     clone.querySelector("#labels")?.remove();clone.querySelector("#labelPaths")?.remove();clone.setAttribute("viewBox",EXPORT_VIEWBOX_STRING);clone.setAttribute("width",SIZE);clone.setAttribute("height",SIZE);clone.setAttribute("xmlns","http://www.w3.org/2000/svg");clone.setAttribute("xmlns:xlink","http://www.w3.org/1999/xlink");clone.querySelectorAll("[tabindex]").forEach(e=>e.removeAttribute("tabindex"));return clone;
   }
   function svgToCanvasPoint(p){return{x:(p.x-EXPORT_VIEWBOX.x)*(SIZE/EXPORT_VIEWBOX.width),y:(p.y-EXPORT_VIEWBOX.y)*(SIZE/EXPORT_VIEWBOX.height)};}
@@ -58,6 +59,10 @@
       exportBtn.textContent="Preparing labels…";const labelLayer=makeLabelLayer(svg),canvas=document.createElement("canvas");canvas.width=SIZE;canvas.height=SIZE;const ctx=canvas.getContext("2d",{alpha:false});ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";await drawSvgFrame(svg,ctx,labelLayer);const mp4=await createMp4Encoder(canvas);let frame=0;
       async function commitFrame(){await drawSvgFrame(svg,ctx,labelLayer);await mp4.add(canvas,frame++);}
       exportBtn.textContent=mp4.mode==="mediarecorder"?"Recording MP4…":"Rendering MP4…";
+      api.prepareBeforeStart();
+      for(let i=0;i<INITIAL_FRAMES;i++)await commitFrame();
+      for(let i=1;i<=SPIRAL_FRAMES;i++){const t=i/SPIRAL_FRAMES;api.setBeforeSpiralProgress(1-Math.pow(1-t,3.2));await commitFrame();}
+      api.setBeforeSpiralProgress(1);
       for(let i=0;i<FPS;i++)await commitFrame();
       api.playAfter();
       const maxFrames=FPS*30;
