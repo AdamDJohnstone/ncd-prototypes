@@ -41,8 +41,9 @@ await wait(3700);
 firstWedge.classList.remove("minimum-transition");
 await wait(1700);
 
-[...wg.children].forEach((w,i)=>{if(i===first)return;setTimeout(()=>{w.setAttribute("d",wedgeD(i,rr(B.r[i],afterOff)));glow(i,1800)},(i%4)*180)});
-await wait(3200);
+const others=[...wg.children].map((w,i)=>({w,i})).filter(x=>x.i!==first);
+others.forEach(({w,i},order)=>{setTimeout(()=>{w.classList.add("secondary-transition");w.setAttribute("d",wedgeD(i,rr(B.r[i],afterOff)));glow(i,3000);setTimeout(()=>w.classList.remove("secondary-transition"),2900)},order*260)});
+await wait(5000);
 await growSpiral(B.r,afterOff,B.i);
 current="after";busy=false;buttons()}
 function buttons(){document.getElementById("beforeBtn")?.classList.toggle("active",current==="before");document.getElementById("afterBtn")?.classList.toggle("active",current==="after")}
