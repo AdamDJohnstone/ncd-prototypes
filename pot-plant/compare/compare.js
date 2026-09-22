@@ -29,7 +29,7 @@ function sector(t){let d=t*180/Math.PI;while(d<start)d+=360;while(d>=start+360)d
 const pathOf=(a,n=a.length)=>{let d=`M ${a[0][0]} ${a[0][1]}`;for(let i=1;i<n;i++)d+=` L ${a[i][0].toFixed(2)} ${a[i][1].toFixed(2)}`;return d};
 function clearSpiral(){spiral.setAttribute("d","");under.setAttribute("d","");dot.style.opacity=0}
 function spiralLength(pts){let n=0;for(let i=1;i<pts.length;i++)n+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);return n}
-const SPIRAL_SPEED=560,SPIRAL_MIN_MS=1800;
+const SPIRAL_SPEED=280,SPIRAL_MIN_MS=3600;
 function spiralDuration(rs,offset,minIdx){const pts=spiralPts(rs,offset,minIdx);return Math.max(SPIRAL_MIN_MS,spiralLength(pts)/SPIRAL_SPEED*1000)}
 function growSpiral(rs,offset,minIdx,duration=spiralDuration(rs,offset,minIdx)){return new Promise(resolve=>{const pts=spiralPts(rs,offset,minIdx),st=performance.now();function f(now){const t=Math.min(1,(now-st)/duration),e=1-Math.pow(1-t,3.2),n=Math.max(2,Math.floor(e*(pts.length-1))+1),d=pathOf(pts,n);spiral.setAttribute("d",d);under.setAttribute("d",d);const q=pts[n-1];dot.setAttribute("cx",q[0]);dot.setAttribute("cy",q[1]);dot.style.opacity=1;if(t<1)requestAnimationFrame(f);else resolve(pts[pts.length-1])}requestAnimationFrame(f)})}
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
