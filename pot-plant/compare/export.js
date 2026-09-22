@@ -2,7 +2,7 @@
   const exportBtn=document.getElementById("exportVideoBtn"); if(!exportBtn)return;
   const churchNameInput=document.getElementById("churchNameInput"),filenamePreview=document.getElementById("exportFilenamePreview");
   const SIZE=1080,FPS=30,EXPORT_VIEWBOX={x:-100,y:-100,width:1080,height:1080},EXPORT_VIEWBOX_STRING=`${EXPORT_VIEWBOX.x} ${EXPORT_VIEWBOX.y} ${EXPORT_VIEWBOX.width} ${EXPORT_VIEWBOX.height}`;
-  const INITIAL_FRAMES=Math.round(.35*FPS),REVEAL_FRAMES=FPS,SPIRAL_FRAMES=10*FPS,GOLD_FRAMES=Math.round(.5*FPS),FINAL_FRAMES=FPS;
+  const INITIAL_FRAMES=Math.round(.35*FPS),REVEAL_FRAMES=FPS,GOLD_FRAMES=Math.round(.5*FPS),FINAL_FRAMES=FPS;
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   function safeFilenamePart(v){return v.trim().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/&/g," and ").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");}
   function exportBaseName(){const l=new URLSearchParams(location.search).get("lang")||"en",c=safeFilenamePart(churchNameInput?.value||"");return `${c?c+"-":""}ncd-pot-plant-comparison-${l}`;}
@@ -59,9 +59,9 @@
       exportBtn.textContent="Preparing labels…";const labelLayer=makeLabelLayer(svg),canvas=document.createElement("canvas");canvas.width=SIZE;canvas.height=SIZE;const ctx=canvas.getContext("2d",{alpha:false});ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";await drawSvgFrame(svg,ctx,labelLayer);const mp4=await createMp4Encoder(canvas);let frame=0;
       async function commitFrame(){await drawSvgFrame(svg,ctx,labelLayer);await mp4.add(canvas,frame++);}
       exportBtn.textContent=mp4.mode==="mediarecorder"?"Recording MP4…":"Rendering MP4…";
-      api.prepareBeforeStart();
+      const beforeState=api.prepareBeforeStart(),beforeSpiralFrames=Math.max(1,Math.round(beforeState.duration/1000*FPS));
       for(let i=0;i<INITIAL_FRAMES;i++)await commitFrame();
-      for(let i=1;i<=SPIRAL_FRAMES;i++){const t=i/SPIRAL_FRAMES;api.setBeforeSpiralProgress(1-Math.pow(1-t,3.2));await commitFrame();}
+      for(let i=1;i<=beforeSpiralFrames;i++){const t=i/beforeSpiralFrames;api.setBeforeSpiralProgress(1-Math.pow(1-t,3.2));await commitFrame();}
       api.setBeforeSpiralProgress(1);
       for(let i=0;i<FPS;i++)await commitFrame();
       api.playAfter();
