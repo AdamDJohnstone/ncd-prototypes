@@ -39,17 +39,34 @@ oldDot.style.opacity=dir===0?0:1;
 clearSpiral();
 await wait(1200);
 
-const first=B.i,firstWedge=wg.children[first];
-firstWedge.classList.add("minimum-transition");
-firstWedge.setAttribute("d",wedgeD(first,rr(B.r[first],afterOff)));
-glow(first,3800,true);
-await wait(3700);
-firstWedge.classList.remove("minimum-transition");
-await wait(1700);
+const changedMinimum=A.i!==B.i;
+async function resolveMinimum(i){
+  const w=wg.children[i];
+  w.classList.add("minimum-transition");
+  w.setAttribute("d",wedgeD(i,rr(B.r[i],afterOff)));
+  glow(i,3800,true);
+  await wait(3700);
+  w.classList.remove("minimum-transition");
+  await wait(1100);
+}
 
-const others=[...wg.children].map((w,i)=>({w,i})).filter(x=>x.i!==first);
-others.forEach(({w,i},order)=>{setTimeout(()=>{w.classList.add("secondary-transition");w.setAttribute("d",wedgeD(i,rr(B.r[i],afterOff)));glow(i,3000);setTimeout(()=>w.classList.remove("secondary-transition"),2900)},order*260)});
-await wait(5000);
+if(changedMinimum){
+  await resolveMinimum(A.i);
+  await resolveMinimum(B.i);
+}else{
+  await resolveMinimum(B.i);
+}
+
+const minimums=new Set(changedMinimum?[A.i,B.i]:[B.i]);
+const others=[...wg.children].map((w,i)=>({w,i})).filter(x=>!minimums.has(x.i));
+others.forEach(({w,i})=>{
+  w.classList.add("quiet-transition");
+  w.setAttribute("d",wedgeD(i,rr(B.r[i],afterOff)));
+});
+await wait(2800);
+others.forEach(({w})=>w.classList.remove("quiet-transition"));
+await wait(700);
+
 await growSpiral(B.r,afterOff,B.i);
 current="after";busy=false;buttons()}
 function buttons(){document.getElementById("beforeBtn")?.classList.toggle("active",current==="before");document.getElementById("afterBtn")?.classList.toggle("active",current==="after")}
