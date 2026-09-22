@@ -77,6 +77,17 @@ if(document.body.classList.contains("compare-viewer")){
     isBusy:()=>busy,
     state:()=>current,
     playAfter:()=>showAfter(),
+    prepareBeforeStart(){
+      const A=minInfo(before),B=minInfo(after),dir=Math.sign(B.v-A.v),off=dir>0?-1:0;
+      setWedges(A.r,off,true);clearSpiral();oldDot.style.opacity=0;current="before";busy=false;
+      return{ranks:A.r,offset:off,minIdx:A.i};
+    },
+    setBeforeSpiralProgress(progress){
+      const A=minInfo(before),B=minInfo(after),dir=Math.sign(B.v-A.v),off=dir>0?-1:0,pts=spiralPts(A.r,off,A.i);
+      const p=Math.max(0,Math.min(1,progress)),n=p<=0?1:Math.max(2,Math.floor(p*(pts.length-1))+1),d=pathOf(pts,n);
+      spiral.setAttribute("d",d);under.setAttribute("d",d);
+      const q=pts[n-1];dot.setAttribute("cx",q[0]);dot.setAttribute("cy",q[1]);dot.style.opacity=p<=0?0:1;
+    },
     hideControls(){document.querySelector(".compare-nav")?.remove();if(qcCard)qcCard.style.display="none"}
   };
 }
