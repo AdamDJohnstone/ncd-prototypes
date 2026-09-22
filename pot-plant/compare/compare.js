@@ -26,9 +26,25 @@ function glow(i,duration=1100,minimum=false){const w=wg.children[i];w.classList.
 async function showBefore(){if(busy)return;busy=true;current="before";oldDot.style.opacity=0;clearSpiral();[...wg.children].forEach(w=>w.classList.add("hidden"));await wait(350);const A=minInfo(before),B=minInfo(after),dir=Math.sign(B.v-A.v),off=dir>0?-1:0;setWedges(A.r,off,true);[...wg.children].forEach(w=>w.classList.remove("hidden"));await wait(700);await growSpiral(A.r,off,A.i);busy=false;buttons()}
 async function showAfter(){if(busy||current==="after")return;busy=true;const A=minInfo(before),B=minInfo(after),dir=Math.sign(B.v-A.v),beforeOff=dir>0?-1:0,afterOff=dir<0?-1:0;
 if(current!=="before"){busy=false;await showBefore();busy=true}
-const oldPts=spiralPts(A.r,beforeOff,A.i),tip=oldPts[oldPts.length-1];oldDot.setAttribute("cx",tip[0]);oldDot.setAttribute("cy",tip[1]);oldDot.style.opacity=dir===0?0:.55;clearSpiral();await wait(300);
-const first=B.i;wg.children[first].setAttribute("d",wedgeD(first,rr(B.r[first],afterOff)));glow(first);await wait(650);
-[...wg.children].forEach((w,i)=>{if(i===first)return;setTimeout(()=>{w.setAttribute("d",wedgeD(i,rr(B.r[i],afterOff)));glow(i)},(i%4)*140)});await wait(2600);await growSpiral(B.r,afterOff,B.i);current="after";busy=false;buttons()}
+const oldPts=spiralPts(A.r,beforeOff,A.i),tip=oldPts[oldPts.length-1];
+oldDot.setAttribute("cx",tip[0]);oldDot.setAttribute("cy",tip[1]);
+svg.appendChild(oldDot);
+oldDot.style.opacity=dir===0?0:1;
+clearSpiral();
+await wait(1200);
+
+const first=B.i,firstWedge=wg.children[first];
+firstWedge.classList.add("minimum-transition");
+firstWedge.setAttribute("d",wedgeD(first,rr(B.r[first],afterOff)));
+glow(first,3800,true);
+await wait(3700);
+firstWedge.classList.remove("minimum-transition");
+await wait(1700);
+
+[...wg.children].forEach((w,i)=>{if(i===first)return;setTimeout(()=>{w.setAttribute("d",wedgeD(i,rr(B.r[i],afterOff)));glow(i,1800)},(i%4)*180)});
+await wait(3200);
+await growSpiral(B.r,afterOff,B.i);
+current="after";busy=false;buttons()}
 function buttons(){document.getElementById("beforeBtn")?.classList.toggle("active",current==="before");document.getElementById("afterBtn")?.classList.toggle("active",current==="after")}
 function url(){const q=new URLSearchParams(location.search);q.set("before",before.join(","));q.set("after",after.join(","));q.set("lang",langCode);history.replaceState(null,"",location.pathname+"?"+q)}
 function controls(id,arr,setter){const el=document.getElementById(id);if(!el)return;el.innerHTML="";INPUT.forEach((k,i)=>{const row=document.createElement("div");row.className="compare-row";row.innerHTML=`<label>${lang.qcs[k].name}</label><input type="number" min="-50" step="1" value="${arr[i]}">`;row.querySelector("input").addEventListener("change",e=>{const n=Number(e.target.value);if(Number.isFinite(n)){setter(i,n);url();current="edit";showBefore()}});el.appendChild(row)})}
