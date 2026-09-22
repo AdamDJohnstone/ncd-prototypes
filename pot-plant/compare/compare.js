@@ -45,23 +45,16 @@ oldDot.style.opacity=dir===0?0:1;
 clearSpiral();
 await wait(1200);
 
-const changedMinimum=A.i!==B.i;
-async function resolveMinimum(i){
-  glow(i,3800,true);
-  await animateRadii([{i,to:rr(B.r[i],afterOff)}],3400,easeMinimum);
+async function resolveOldMinimum(){
+  glow(A.i,3800,true);
+  await animateRadii([{i:A.i,to:rr(B.r[A.i],afterOff)}],3400,easeMinimum);
   await wait(300);
   await wait(1100);
 }
 
-if(changedMinimum){
-  await resolveMinimum(A.i);
-  await resolveMinimum(B.i);
-}else{
-  await resolveMinimum(B.i);
-}
+await resolveOldMinimum();
 
-const minimums=new Set(changedMinimum?[A.i,B.i]:[B.i]);
-const others=[...wg.children].map((w,i)=>({w,i})).filter(x=>!minimums.has(x.i));
+const others=[...wg.children].map((w,i)=>({w,i})).filter(x=>x.i!==A.i);
 await animateRadii(others.map(({i})=>({i,to:rr(B.r[i],afterOff)})),2400,easeQuiet);
 await wait(1100);
 
