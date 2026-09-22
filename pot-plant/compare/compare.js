@@ -71,6 +71,7 @@ labels();ensureWedges();controls("beforeScores",before,(i,n)=>before[i]=n);contr
 document.getElementById("beforeBtn")?.addEventListener("click",showBefore);document.getElementById("afterBtn")?.addEventListener("click",showAfter);
 document.getElementById("languageSelect")?.addEventListener("change",e=>{const q=new URLSearchParams(location.search);q.set("lang",e.target.value);location.search=q});
 const ls=document.getElementById("languageSelect");if(ls)ls.value=langCode;
+const exportMode=p.get("export")==="1";
 if(document.body.classList.contains("compare-viewer")){
   window.NCDPotPlantCompareExport={
     isBusy:()=>busy,
@@ -79,5 +80,12 @@ if(document.body.classList.contains("compare-viewer")){
     hideControls(){document.querySelector(".compare-nav")?.remove();if(qcCard)qcCard.style.display="none"}
   };
 }
-showBefore();
+if(exportMode){
+  const A=minInfo(before),B=minInfo(after),dir=Math.sign(B.v-A.v),off=dir>0?-1:0;
+  setWedges(A.r,off,true);clearSpiral();
+  const pts=spiralPts(A.r,off,A.i),d=pathOf(pts);
+  spiral.setAttribute("d",d);under.setAttribute("d",d);
+  const q=pts[pts.length-1];dot.setAttribute("cx",q[0]);dot.setAttribute("cy",q[1]);dot.style.opacity=1;
+  oldDot.style.opacity=0;current="before";busy=false;buttons();
+}else showBefore();
 })();
