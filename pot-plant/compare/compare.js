@@ -20,7 +20,10 @@ function wedgeD(i,r){const a0=rad(start+i*stepDeg),a1=rad(start+(i+1)*stepDeg),a
 function arc(r,a0,a1,rev){let s=rad(a0),e=rad(a1);if(rev)[s,e]=[e,s];const a=polar(r,s),z=polar(r,e);return`M ${a[0]} ${a[1]} A ${r} ${r} 0 0 ${rev?0:1} ${z[0]} ${z[1]}`}
 function labels(){pg.innerHTML=lg.innerHTML="";ORDER.forEach((k,i)=>{const q=lang.qcs[k],mid=start+(i+.5)*stepDeg,bot=((mid%360)+360)%360>0&&((mid%360)+360)%360<180,lines=q.lines.slice(0,4),c=(lines.length-1)/2;lines.forEach((line,j)=>{const off=(c-j)*34*(lang.labelLineSpacing??1),r=labelR+(bot?-off:off),id=`ca${i}_${j}`,path=document.createElementNS("http://www.w3.org/2000/svg","path");path.id=id;path.setAttribute("d",arc(r,start+i*stepDeg+3.5,start+(i+1)*stepDeg-3.5,bot));pg.appendChild(path);const t=document.createElementNS("http://www.w3.org/2000/svg","text");t.setAttribute("class",(line.emphasis?"arc-label-adj":"arc-label-noun")+" qc-clickable");t.setAttribute("tabindex","0");t.setAttribute("role","button");t.addEventListener("click",e=>{e.stopPropagation();openQcCard(i)});t.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openQcCard(i)}});t.setAttribute("font-size",(line.emphasis?41.5:33.5)*(lang.labelScale??1));const tp=document.createElementNS("http://www.w3.org/2000/svg","textPath");tp.setAttribute("href","#"+id);tp.setAttribute("startOffset","50%");tp.setAttribute("text-anchor","middle");tp.textContent=line.text;t.appendChild(tp);lg.appendChild(t)})})}
 function ensureWedges(){if(wg.children.length)return;ORDER.forEach((_,i)=>{const x=document.createElementNS("http://www.w3.org/2000/svg","path");x.classList.add("wedge","compare-wedge");x.dataset.i=i;x.setAttribute("fill",grad(i));x.setAttribute("tabindex","0");x.setAttribute("role","button");x.addEventListener("click",e=>{e.stopPropagation();openQcCard(i)});x.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openQcCard(i)}});wg.appendChild(x)})}
-function setWedges(rs,offset=0,instant=false){ensureWedges();[...wg.children].forEach((w,i)=>{if(instant)w.classList.add("instant");w.setAttribute("d",wedgeD(i,rr(rs[i],offset)));if(instant)requestAnimationFrame(()=>w.classList.remove("instant"))})}
+function setWedgeRadius(i,r){const w=wg.children[i];w.dataset.radius=String(r);w.setAttribute("d",wedgeD(i,r))}
+function setWedges(rs,offset=0,instant=false){ensureWedges();[...wg.children].forEach((w,i)=>{if(instant)w.classList.add("instant");setWedgeRadius(i,rr(rs[i],offset));if(instant)requestAnimationFrame(()=>w.classList.remove("instant"))})}
+const easeMinimum=t=>1-Math.pow(1-t,2.35),easeQuiet=t=>1-Math.pow(1-t,3);
+function animateRadii(items,duration,ease=easeQuiet){return new Promise(resolve=>{const jobs=items.map(({i,to})=>{const w=wg.children[i],from=Number(w.dataset.radius);return{i,from:Number.isFinite(from)?from:to,to}}),st=performance.now();function frame(now){const t=Math.min(1,(now-st)/duration),e=ease(t);jobs.forEach(({i,from,to})=>setWedgeRadius(i,from+(to-from)*e));if(t<1)requestAnimationFrame(frame);else resolve()}requestAnimationFrame(frame)})}
 function spiralPts(rs,offset,minIdx){const t0=-Math.PI/2,max=t0+Math.PI*60,st=.0045,pts=[[cx,cy]],boundary=rr(rs[minIdx],offset);let prev=t0,ps=sector(prev);for(let t=t0+st;t<=max;t+=st){let cs=sector(t);if(cs!==ps){let bt=rad(start+(ps+1)*stepDeg);while(bt<=prev)bt+=2*Math.PI;while(bt>t)bt-=2*Math.PI;let br=b*(bt-t0);if(cs===minIdx&&br>boundary){pts.push(polar(br,bt));return pts}}pts.push(polar(b*(t-t0),t));prev=t;ps=cs}return pts}
 function sector(t){let d=t*180/Math.PI;while(d<start)d+=360;while(d>=start+360)d-=360;return Math.floor((d-start)/stepDeg)}
 const pathOf=(a,n=a.length)=>{let d=`M ${a[0][0]} ${a[0][1]}`;for(let i=1;i<n;i++)d+=` L ${a[i][0].toFixed(2)} ${a[i][1].toFixed(2)}`;return d};
@@ -41,12 +44,9 @@ await wait(1200);
 
 const changedMinimum=A.i!==B.i;
 async function resolveMinimum(i){
-  const w=wg.children[i];
-  w.classList.add("minimum-transition");
-  w.setAttribute("d",wedgeD(i,rr(B.r[i],afterOff)));
   glow(i,3800,true);
-  await wait(3700);
-  w.classList.remove("minimum-transition");
+  await animateRadii([{i,to:rr(B.r[i],afterOff)}],3400,easeMinimum);
+  await wait(300);
   await wait(1100);
 }
 
@@ -59,13 +59,8 @@ if(changedMinimum){
 
 const minimums=new Set(changedMinimum?[A.i,B.i]:[B.i]);
 const others=[...wg.children].map((w,i)=>({w,i})).filter(x=>!minimums.has(x.i));
-others.forEach(({w,i})=>{
-  w.classList.add("quiet-transition");
-  w.setAttribute("d",wedgeD(i,rr(B.r[i],afterOff)));
-});
-await wait(2800);
-others.forEach(({w})=>w.classList.remove("quiet-transition"));
-await wait(700);
+await animateRadii(others.map(({i})=>({i,to:rr(B.r[i],afterOff)})),2400,easeQuiet);
+await wait(1100);
 
 await growSpiral(B.r,afterOff,B.i);
 current="after";busy=false;buttons()}
