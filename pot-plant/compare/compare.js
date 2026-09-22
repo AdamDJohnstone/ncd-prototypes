@@ -28,7 +28,10 @@ function spiralPts(rs,offset,minIdx){const t0=-Math.PI/2,max=t0+Math.PI*60,st=.0
 function sector(t){let d=t*180/Math.PI;while(d<start)d+=360;while(d>=start+360)d-=360;return Math.floor((d-start)/stepDeg)}
 const pathOf=(a,n=a.length)=>{let d=`M ${a[0][0]} ${a[0][1]}`;for(let i=1;i<n;i++)d+=` L ${a[i][0].toFixed(2)} ${a[i][1].toFixed(2)}`;return d};
 function clearSpiral(){spiral.setAttribute("d","");under.setAttribute("d","");dot.style.opacity=0}
-function growSpiral(rs,offset,minIdx,duration=3600){return new Promise(resolve=>{const pts=spiralPts(rs,offset,minIdx),st=performance.now();function f(now){const t=Math.min(1,(now-st)/duration),e=1-Math.pow(1-t,3.2),n=Math.max(2,Math.floor(e*(pts.length-1))+1),d=pathOf(pts,n);spiral.setAttribute("d",d);under.setAttribute("d",d);const q=pts[n-1];dot.setAttribute("cx",q[0]);dot.setAttribute("cy",q[1]);dot.style.opacity=1;if(t<1)requestAnimationFrame(f);else resolve(pts[pts.length-1])}requestAnimationFrame(f)})}
+function spiralLength(pts){let n=0;for(let i=1;i<pts.length;i++)n+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);return n}
+const SPIRAL_SPEED=560,SPIRAL_MIN_MS=1800;
+function spiralDuration(rs,offset,minIdx){const pts=spiralPts(rs,offset,minIdx);return Math.max(SPIRAL_MIN_MS,spiralLength(pts)/SPIRAL_SPEED*1000)}
+function growSpiral(rs,offset,minIdx,duration=spiralDuration(rs,offset,minIdx)){return new Promise(resolve=>{const pts=spiralPts(rs,offset,minIdx),st=performance.now();function f(now){const t=Math.min(1,(now-st)/duration),e=1-Math.pow(1-t,3.2),n=Math.max(2,Math.floor(e*(pts.length-1))+1),d=pathOf(pts,n);spiral.setAttribute("d",d);under.setAttribute("d",d);const q=pts[n-1];dot.setAttribute("cx",q[0]);dot.setAttribute("cy",q[1]);dot.style.opacity=1;if(t<1)requestAnimationFrame(f);else resolve(pts[pts.length-1])}requestAnimationFrame(f)})}
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 function minInfo(s){const d=diagram(s),v=Math.min(...d);return{d,v,i:d.indexOf(v),r:ranks(d)}}
 function glow(i,duration=1100,minimum=false){const w=wg.children[i];w.classList.remove("resolved","minimum-resolving");void w.getBoundingClientRect();w.classList.add("resolved");if(minimum)w.classList.add("minimum-resolving");setTimeout(()=>w.classList.remove("resolved","minimum-resolving"),duration)}
@@ -80,7 +83,11 @@ if(document.body.classList.contains("compare-viewer")){
     prepareBeforeStart(){
       const A=minInfo(before),B=minInfo(after),dir=Math.sign(B.v-A.v),off=dir>0?-1:0;
       setWedges(A.r,off,true);clearSpiral();oldDot.style.opacity=0;current="before";busy=false;
-      return{ranks:A.r,offset:off,minIdx:A.i};
+      return{ranks:A.r,offset:off,minIdx:A.i,duration:spiralDuration(A.r,off,A.i)};
+    },
+    beforeSpiralDuration(){
+      const A=minInfo(before),B=minInfo(after),dir=Math.sign(B.v-A.v),off=dir>0?-1:0;
+      return spiralDuration(A.r,off,A.i);
     },
     setBeforeSpiralProgress(progress){
       const A=minInfo(before),B=minInfo(after),dir=Math.sign(B.v-A.v),off=dir>0?-1:0,pts=spiralPts(A.r,off,A.i);
