@@ -5,13 +5,11 @@ const defaultsA=[67,52,62,59,71,74,43,78], defaultsB=[70,58,65,61,73,76,51,80];
 const parse=(key,d)=>{const s=p.get(key);if(!s)return [...d];const a=s.split(",").map(Number);return a.length===8&&a.every(Number.isFinite)?a:[...d]};
 let before=parse("before",defaultsA),after=parse("after",defaultsB),busy=false,current="ready";
 const svg=document.getElementById("viz"),defs=svg.querySelector("defs"),wg=document.getElementById("wedges"),pg=document.getElementById("labelPaths"),lg=document.getElementById("labels"),spiral=document.getElementById("spiral"),under=document.getElementById("spiralUnder"),dot=document.getElementById("stopDot"),oldDot=document.getElementById("oldStopDot");
-const cx=440,cy=440,start=-112.5,stepDeg=45,minR=108,gap=36,labelR=minR+7*gap+60,b=33/(2*Math.PI);
+const cx=440,cy=440,start=-112.5,stepDeg=45,minR=108,gap=36,labelR=minR+7*gap+60,b=33/(2*Math.PI),INITIAL_WEDGE_R=24,INITIAL_WEDGE_MS=3000,INITIAL_SPIRAL_DELAY=900;
 const qcCard=document.getElementById("qcCard"),qcCardName=document.getElementById("qcCardName"),qcCardQuestion=document.getElementById("qcCardQuestion"),qcCardDescription=document.getElementById("qcCardDescription"),qcCardClose=document.getElementById("qcCardClose");
 function openQcCard(i){const q=lang.qcs[ORDER[i]];if(!qcCard||!q)return;qcCardName.textContent=q.name;qcCardQuestion.textContent=q.heartQuestion;qcCardDescription.textContent=q.description;qcCard.classList.add("is-open");qcCard.setAttribute("aria-hidden","false")}
 function closeQcCard(){if(!qcCard)return;qcCard.classList.remove("is-open");qcCard.setAttribute("aria-hidden","true")}
-qcCardClose?.addEventListener("click",e=>{e.stopPropagation();closeQcCard()});
-document.addEventListener("keydown",e=>{if(e.key==="Escape")closeQcCard()});
-document.addEventListener("click",e=>{if(qcCard?.classList.contains("is-open")&&!qcCard.contains(e.target)&&!e.target.closest(".qc-clickable")&&!e.target.closest(".wedge"))closeQcCard()});
+qcCardClose?.addEventListener("click",e=>{e.stopPropagation();closeQcCard()});document.addEventListener("keydown",e=>{if(e.key==="Escape")closeQcCard()});document.addEventListener("click",e=>{if(qcCard?.classList.contains("is-open")&&!qcCard.contains(e.target)&&!e.target.closest(".qc-clickable")&&!e.target.closest(".wedge"))closeQcCard()});
 const mapScores=s=>Object.fromEntries(INPUT.map((k,i)=>[k,s[i]])), diagram=s=>{const m=mapScores(s);return ORDER.map(k=>m[k])};
 const ranks=v=>{const ix=v.map((_,i)=>i).sort((a,b)=>v[a]-v[b]),r=[];ix.forEach((x,i)=>r[x]=i+1);return r};
 const polar=(r,t)=>[cx+r*Math.cos(t),cy+r*Math.sin(t)], rr=(rank,offset=0)=>minR+(rank-1+offset)*gap, rad=d=>d*Math.PI/180;
@@ -22,7 +20,7 @@ function labels(){pg.innerHTML=lg.innerHTML="";ORDER.forEach((k,i)=>{const q=lan
 function ensureWedges(){if(wg.children.length)return;ORDER.forEach((_,i)=>{const x=document.createElementNS("http://www.w3.org/2000/svg","path");x.classList.add("wedge","compare-wedge");x.dataset.i=i;x.setAttribute("fill",grad(i));x.setAttribute("tabindex","0");x.setAttribute("role","button");x.addEventListener("click",e=>{e.stopPropagation();openQcCard(i)});x.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openQcCard(i)}});wg.appendChild(x)})}
 function setWedgeRadius(i,r){const w=wg.children[i];w.dataset.radius=String(r);w.setAttribute("d",wedgeD(i,r))}
 function setWedges(rs,offset=0,instant=false){ensureWedges();[...wg.children].forEach((w,i)=>{if(instant)w.classList.add("instant");setWedgeRadius(i,rr(rs[i],offset));if(instant)requestAnimationFrame(()=>w.classList.remove("instant"))})}
-const easeMinimum=t=>1-Math.pow(1-t,2.35),easeQuiet=t=>1-Math.pow(1-t,3);
+const easeMinimum=t=>1-Math.pow(1-t,2.35),easeQuiet=t=>1-Math.pow(1-t,3),easeGrow=t=>1-Math.pow(1-t,2.15);
 function animateRadii(items,duration,ease=easeQuiet){return new Promise(resolve=>{const jobs=items.map(({i,to})=>{const w=wg.children[i],from=Number(w.dataset.radius);return{i,from:Number.isFinite(from)?from:to,to}}),st=performance.now();function frame(now){const t=Math.min(1,(now-st)/duration),e=ease(t);jobs.forEach(({i,from,to})=>setWedgeRadius(i,from+(to-from)*e));if(t<1)requestAnimationFrame(frame);else resolve()}requestAnimationFrame(frame)})}
 function spiralPts(rs,offset,minIdx){const t0=-Math.PI/2,max=t0+Math.PI*60,st=.0045,pts=[[cx,cy]],boundary=rr(rs[minIdx],offset);let prev=t0,ps=sector(prev);for(let t=t0+st;t<=max;t+=st){let cs=sector(t);if(cs!==ps){let bt=rad(start+(ps+1)*stepDeg);while(bt<=prev)bt+=2*Math.PI;while(bt>t)bt-=2*Math.PI;let br=b*(bt-t0);if(cs===minIdx&&br>boundary){pts.push(polar(br,bt));return pts}}pts.push(polar(b*(t-t0),t));prev=t;ps=cs}return pts}
 function sector(t){let d=t*180/Math.PI;while(d<start)d+=360;while(d>=start+360)d-=360;return Math.floor((d-start)/stepDeg)}
@@ -35,69 +33,15 @@ function growSpiral(rs,offset,minIdx,duration=spiralDuration(rs,offset,minIdx)){
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 function minInfo(s){const d=diagram(s),v=Math.min(...d);return{d,v,i:d.indexOf(v),r:ranks(d)}}
 function glow(i,duration=1100,minimum=false){const w=wg.children[i];w.classList.remove("resolved","minimum-resolving");void w.getBoundingClientRect();w.classList.add("resolved");if(minimum)w.classList.add("minimum-resolving");setTimeout(()=>w.classList.remove("resolved","minimum-resolving"),duration)}
-async function showBefore(){if(busy)return;busy=true;current="before";oldDot.style.opacity=0;clearSpiral();[...wg.children].forEach(w=>w.classList.add("hidden"));await wait(350);const A=minInfo(before),B=minInfo(after),dir=Math.sign(B.v-A.v),off=dir>0?-1:0;setWedges(A.r,off,true);[...wg.children].forEach(w=>w.classList.remove("hidden"));await wait(700);await growSpiral(A.r,off,A.i);busy=false;buttons()}
+async function showBefore(){if(busy)return;busy=true;current="before";oldDot.style.opacity=0;clearSpiral();const A=minInfo(before),B=minInfo(after),dir=Math.sign(B.v-A.v),off=dir>0?-1:0;ensureWedges();[...wg.children].forEach((w,i)=>{w.classList.remove("hidden");setWedgeRadius(i,INITIAL_WEDGE_R)});await wait(180);const wedgeGrowth=animateRadii(A.r.map((rank,i)=>({i,to:rr(rank,off)})),INITIAL_WEDGE_MS,easeGrow);const spiralGrowth=wait(INITIAL_SPIRAL_DELAY).then(()=>growSpiral(A.r,off,A.i));await Promise.all([wedgeGrowth,spiralGrowth]);busy=false;buttons()}
 async function showAfter(){if(busy||current!=="before")return;busy=true;const A=minInfo(before),B=minInfo(after),dir=Math.sign(B.v-A.v),beforeOff=dir>0?-1:0,afterOff=dir<0?-1:0;
-const oldPts=spiralPts(A.r,beforeOff,A.i),tip=oldPts[oldPts.length-1];
-oldDot.setAttribute("cx",tip[0]);oldDot.setAttribute("cy",tip[1]);
-svg.appendChild(oldDot);
-oldDot.style.opacity=dir===0?0:1;
-clearSpiral();
-await wait(1200);
-
-async function resolveOldMinimum(){
-  glow(A.i,3800,true);
-  await animateRadii([{i:A.i,to:rr(B.r[A.i],afterOff)}],3400,easeMinimum);
-  await wait(300);
-  await wait(1100);
-}
-
-await resolveOldMinimum();
-
-const others=[...wg.children].map((w,i)=>({w,i})).filter(x=>x.i!==A.i);
-await animateRadii(others.map(({i})=>({i,to:rr(B.r[i],afterOff)})),2400,easeQuiet);
-await wait(1100);
-
-await growSpiral(B.r,afterOff,B.i);
-current="after";busy=false;buttons()}
+const oldPts=spiralPts(A.r,beforeOff,A.i),tip=oldPts[oldPts.length-1];oldDot.setAttribute("cx",tip[0]);oldDot.setAttribute("cy",tip[1]);svg.appendChild(oldDot);oldDot.style.opacity=dir===0?0:1;clearSpiral();await wait(1200);
+async function resolveOldMinimum(){glow(A.i,3800,true);await animateRadii([{i:A.i,to:rr(B.r[A.i],afterOff)}],3400,easeMinimum);await wait(300);await wait(1100)}
+await resolveOldMinimum();const others=[...wg.children].map((w,i)=>({w,i})).filter(x=>x.i!==A.i);await animateRadii(others.map(({i})=>({i,to:rr(B.r[i],afterOff)})),2400,easeQuiet);await wait(1100);await growSpiral(B.r,afterOff,B.i);current="after";busy=false;buttons()}
 function buttons(){document.getElementById("beforeBtn")?.classList.toggle("active",current==="before");document.getElementById("afterBtn")?.classList.toggle("active",current==="after")}
 function url(){const q=new URLSearchParams(location.search);q.set("before",before.join(","));q.set("after",after.join(","));q.set("lang",langCode);history.replaceState(null,"",location.pathname+"?"+q)}
 function controls(id,arr,setter){const el=document.getElementById(id);if(!el)return;el.innerHTML="";INPUT.forEach((k,i)=>{const row=document.createElement("div");row.className="compare-row";row.innerHTML=`<label>${lang.qcs[k].name}</label><input type="number" min="-50" step="0.1" value="${Number(arr[i]).toFixed(1)}">`;row.querySelector("input").addEventListener("change",e=>{const n=Number(e.target.value);if(Number.isFinite(n)){setter(i,n);url();current="edit";showBefore()}});el.appendChild(row)})}
-labels();ensureWedges();controls("beforeScores",before,(i,n)=>before[i]=n);controls("afterScores",after,(i,n)=>after[i]=n);
-document.getElementById("beforeBtn")?.addEventListener("click",showBefore);document.getElementById("afterBtn")?.addEventListener("click",showAfter);
-document.getElementById("languageSelect")?.addEventListener("change",e=>{const q=new URLSearchParams(location.search);q.set("lang",e.target.value);location.search=q});
-const ls=document.getElementById("languageSelect");if(ls)ls.value=langCode;
-const exportMode=p.get("export")==="1";
-if(document.body.classList.contains("compare-viewer")){
-  window.NCDPotPlantCompareExport={
-    isBusy:()=>busy,
-    state:()=>current,
-    playAfter:()=>showAfter(),
-    prepareBeforeStart(){
-      const A=minInfo(before),B=minInfo(after),dir=Math.sign(B.v-A.v),off=dir>0?-1:0;
-      setWedges(A.r,off,true);clearSpiral();oldDot.style.opacity=0;current="before";busy=false;
-      return{ranks:A.r,offset:off,minIdx:A.i,duration:spiralDuration(A.r,off,A.i)};
-    },
-    beforeSpiralDuration(){
-      const A=minInfo(before),B=minInfo(after),dir=Math.sign(B.v-A.v),off=dir>0?-1:0;
-      return spiralDuration(A.r,off,A.i);
-    },
-    setBeforeSpiralProgress(progress){
-      const A=minInfo(before),B=minInfo(after),dir=Math.sign(B.v-A.v),off=dir>0?-1:0,pts=spiralPts(A.r,off,A.i);
-      const p=Math.max(0,Math.min(1,progress)),n=p<=0?1:Math.max(2,Math.floor(p*(pts.length-1))+1),d=pathOf(pts,n);
-      spiral.setAttribute("d",d);under.setAttribute("d",d);
-      const q=pts[n-1];dot.setAttribute("cx",q[0]);dot.setAttribute("cy",q[1]);dot.style.opacity=p<=0?0:1;
-    },
-    hideControls(){document.querySelector(".compare-nav")?.remove();if(qcCard)qcCard.style.display="none"}
-  };
-}
-if(exportMode){
-  const A=minInfo(before),B=minInfo(after),dir=Math.sign(B.v-A.v),off=dir>0?-1:0;
-  setWedges(A.r,off,true);clearSpiral();
-  const pts=spiralPts(A.r,off,A.i),d=pathOf(pts);
-  spiral.setAttribute("d",d);under.setAttribute("d",d);
-  const q=pts[pts.length-1];dot.setAttribute("cx",q[0]);dot.setAttribute("cy",q[1]);dot.style.opacity=1;
-  oldDot.style.opacity=0;current="before";busy=false;buttons();
-}else{
-  clearSpiral();oldDot.style.opacity=0;buttons();
-}
+labels();ensureWedges();controls("beforeScores",before,(i,n)=>before[i]=n);controls("afterScores",after,(i,n)=>after[i]=n);document.getElementById("beforeBtn")?.addEventListener("click",showBefore);document.getElementById("afterBtn")?.addEventListener("click",showAfter);document.getElementById("languageSelect")?.addEventListener("change",e=>{const q=new URLSearchParams(location.search);q.set("lang",e.target.value);location.search=q});const ls=document.getElementById("languageSelect");if(ls)ls.value=langCode;const exportMode=p.get("export")==="1";
+if(document.body.classList.contains("compare-viewer")){window.NCDPotPlantCompareExport={isBusy:()=>busy,state:()=>current,playAfter:()=>showAfter(),prepareBeforeStart(){const A=minInfo(before),B=minInfo(after),dir=Math.sign(B.v-A.v),off=dir>0?-1:0;setWedges(A.r,off,true);clearSpiral();oldDot.style.opacity=0;current="before";busy=false;return{ranks:A.r,offset:off,minIdx:A.i,duration:spiralDuration(A.r,off,A.i)}},beforeSpiralDuration(){const A=minInfo(before),B=minInfo(after),dir=Math.sign(B.v-A.v),off=dir>0?-1:0;return spiralDuration(A.r,off,A.i)},setBeforeSpiralProgress(progress){const A=minInfo(before),B=minInfo(after),dir=Math.sign(B.v-A.v),off=dir>0?-1:0,pts=spiralPts(A.r,off,A.i);const p=Math.max(0,Math.min(1,progress)),n=p<=0?1:Math.max(2,Math.floor(p*(pts.length-1))+1),d=pathOf(pts,n);spiral.setAttribute("d",d);under.setAttribute("d",d);const q=pts[n-1];dot.setAttribute("cx",q[0]);dot.setAttribute("cy",q[1]);dot.style.opacity=p<=0?0:1},hideControls(){document.querySelector(".compare-nav")?.remove();if(qcCard)qcCard.style.display="none"}}}
+if(exportMode){const A=minInfo(before),B=minInfo(after),dir=Math.sign(B.v-A.v),off=dir>0?-1:0;setWedges(A.r,off,true);clearSpiral();const pts=spiralPts(A.r,off,A.i),d=pathOf(pts);spiral.setAttribute("d",d);under.setAttribute("d",d);const q=pts[pts.length-1];dot.setAttribute("cx",q[0]);dot.setAttribute("cy",q[1]);dot.style.opacity=1;oldDot.style.opacity=0;current="before";busy=false;buttons()}else{clearSpiral();oldDot.style.opacity=0;buttons()}
 })();
