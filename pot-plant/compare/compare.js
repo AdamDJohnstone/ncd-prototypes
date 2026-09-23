@@ -3,7 +3,7 @@ const p=new URLSearchParams(location.search), langCode=window.NCD_POT_PLANT_LANG
 const INPUT=["EL","GBM","PS","ES","IWS","HSG","NOE","LR"], ORDER=["LR","EL","ES","GBM","NOE","IWS","PS","HSG"], fills=["#477B39","#727145","#926550","#9A5C5E","#786071","#526082","#436777","#44725C"];
 const defaultsA=[67,52,62,59,71,74,43,78], defaultsB=[70,58,65,61,73,76,51,80];
 const parse=(key,d)=>{const s=p.get(key);if(!s)return [...d];const a=s.split(",").map(Number);return a.length===8&&a.every(Number.isFinite)?a:[...d]};
-let before=parse("before",defaultsA),after=parse("after",defaultsB),busy=false,current="before";
+let before=parse("before",defaultsA),after=parse("after",defaultsB),busy=false,current="ready";
 const svg=document.getElementById("viz"),defs=svg.querySelector("defs"),wg=document.getElementById("wedges"),pg=document.getElementById("labelPaths"),lg=document.getElementById("labels"),spiral=document.getElementById("spiral"),under=document.getElementById("spiralUnder"),dot=document.getElementById("stopDot"),oldDot=document.getElementById("oldStopDot");
 const cx=440,cy=440,start=-112.5,stepDeg=45,minR=108,gap=36,labelR=minR+7*gap+60,b=33/(2*Math.PI);
 const qcCard=document.getElementById("qcCard"),qcCardName=document.getElementById("qcCardName"),qcCardQuestion=document.getElementById("qcCardQuestion"),qcCardDescription=document.getElementById("qcCardDescription"),qcCardClose=document.getElementById("qcCardClose");
@@ -36,8 +36,7 @@ const wait=ms=>new Promise(r=>setTimeout(r,ms));
 function minInfo(s){const d=diagram(s),v=Math.min(...d);return{d,v,i:d.indexOf(v),r:ranks(d)}}
 function glow(i,duration=1100,minimum=false){const w=wg.children[i];w.classList.remove("resolved","minimum-resolving");void w.getBoundingClientRect();w.classList.add("resolved");if(minimum)w.classList.add("minimum-resolving");setTimeout(()=>w.classList.remove("resolved","minimum-resolving"),duration)}
 async function showBefore(){if(busy)return;busy=true;current="before";oldDot.style.opacity=0;clearSpiral();[...wg.children].forEach(w=>w.classList.add("hidden"));await wait(350);const A=minInfo(before),B=minInfo(after),dir=Math.sign(B.v-A.v),off=dir>0?-1:0;setWedges(A.r,off,true);[...wg.children].forEach(w=>w.classList.remove("hidden"));await wait(700);await growSpiral(A.r,off,A.i);busy=false;buttons()}
-async function showAfter(){if(busy||current==="after")return;busy=true;const A=minInfo(before),B=minInfo(after),dir=Math.sign(B.v-A.v),beforeOff=dir>0?-1:0,afterOff=dir<0?-1:0;
-if(current!=="before"){busy=false;await showBefore();busy=true}
+async function showAfter(){if(busy||current!=="before")return;busy=true;const A=minInfo(before),B=minInfo(after),dir=Math.sign(B.v-A.v),beforeOff=dir>0?-1:0,afterOff=dir<0?-1:0;
 const oldPts=spiralPts(A.r,beforeOff,A.i),tip=oldPts[oldPts.length-1];
 oldDot.setAttribute("cx",tip[0]);oldDot.setAttribute("cy",tip[1]);
 svg.appendChild(oldDot);
@@ -98,5 +97,7 @@ if(exportMode){
   spiral.setAttribute("d",d);under.setAttribute("d",d);
   const q=pts[pts.length-1];dot.setAttribute("cx",q[0]);dot.setAttribute("cy",q[1]);dot.style.opacity=1;
   oldDot.style.opacity=0;current="before";busy=false;buttons();
-}else showBefore();
+}else{
+  clearSpiral();oldDot.style.opacity=0;buttons();
+}
 })();
