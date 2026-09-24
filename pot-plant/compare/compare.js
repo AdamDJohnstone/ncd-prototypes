@@ -5,7 +5,7 @@ const defaultsA=[67,52,62,59,71,74,43,78], defaultsB=[70,58,65,61,73,76,51,80];
 const parse=(key,d)=>{const s=p.get(key);if(!s)return [...d];const a=s.split(",").map(Number);return a.length===8&&a.every(Number.isFinite)?a:[...d]};
 let before=parse("before",defaultsA),after=parse("after",defaultsB),busy=false,current="ready";
 const svg=document.getElementById("viz"),defs=svg.querySelector("defs"),wg=document.getElementById("wedges"),pg=document.getElementById("labelPaths"),lg=document.getElementById("labels"),spiral=document.getElementById("spiral"),under=document.getElementById("spiralUnder"),dot=document.getElementById("stopDot"),oldDot=document.getElementById("oldStopDot");
-const cx=440,cy=440,start=-112.5,stepDeg=45,minR=108,gap=36,labelR=minR+7*gap+60,b=33/(2*Math.PI),INITIAL_WEDGE_R=24,INITIAL_WEDGE_MS=3000,INITIAL_SPIRAL_DELAY=900;
+const cx=440,cy=440,start=-112.5,stepDeg=45,minR=108,gap=36,labelR=minR+7*gap+60,b=33/(2*Math.PI),INITIAL_WEDGE_R=24,INITIAL_WEDGE_MS=3000,INITIAL_SPIRAL_DELAY=2600;
 const qcCard=document.getElementById("qcCard"),qcCardName=document.getElementById("qcCardName"),qcCardQuestion=document.getElementById("qcCardQuestion"),qcCardDescription=document.getElementById("qcCardDescription"),qcCardClose=document.getElementById("qcCardClose");
 function openQcCard(i){const q=lang.qcs[ORDER[i]];if(!qcCard||!q)return;qcCardName.textContent=q.name;qcCardQuestion.textContent=q.heartQuestion;qcCardDescription.textContent=q.description;qcCard.classList.add("is-open");qcCard.setAttribute("aria-hidden","false")}
 function closeQcCard(){if(!qcCard)return;qcCard.classList.remove("is-open");qcCard.setAttribute("aria-hidden","true")}
