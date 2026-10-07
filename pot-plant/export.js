@@ -2,7 +2,7 @@
   const exportBtn=document.getElementById("exportVideoBtn"); if(!exportBtn)return;
   const churchNameInput=document.getElementById("churchNameInput"),filenamePreview=document.getElementById("exportFilenamePreview");
   const SIZE=1080,FPS=30,EXPORT_VIEWBOX={x:-100,y:-100,width:1080,height:1080},EXPORT_VIEWBOX_STRING=`${EXPORT_VIEWBOX.x} ${EXPORT_VIEWBOX.y} ${EXPORT_VIEWBOX.width} ${EXPORT_VIEWBOX.height}`;
-  const INITIAL_FRAMES=Math.round(.35*FPS),REVEAL_FRAMES=FPS,SPIRAL_FRAMES=10*FPS,GOLD_FRAMES=Math.round(.5*FPS),FINAL_FRAMES=FPS;
+  const INITIAL_FRAMES=Math.round(.35*FPS),WEDGE_FRAMES=3*FPS,SPIRAL_DELAY_FRAMES=Math.round(2.6*FPS),SPIRAL_FRAMES=10*FPS,GOLD_FRAMES=Math.round(.5*FPS),FINAL_FRAMES=FPS;
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   function safeFilenamePart(v){return v.trim().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/&/g," and ").replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");}
   function exportBaseName(){const l=new URLSearchParams(location.search).get("lang")||"en",c=safeFilenamePart(churchNameInput?.value||"");return `${c?c+"-":""}ncd-pot-plant-${l}`;}
@@ -51,14 +51,17 @@
   async function exportVideo(){
     exportBtn.disabled=true;const original=exportBtn.textContent;exportBtn.textContent="Preparing video…";let iframe;
     try{
-      iframe=makeHiddenViewer();const{doc,svg,api}=await waitForViewer(iframe);if(doc.fonts?.ready)await doc.fonts.ready;await sleep(150);api.hideControls();api.setWedgeOpacity(0);api.setSpiralProgress(0);api.setSpiralTone("gold");
+      iframe=makeHiddenViewer();const{doc,svg,api}=await waitForViewer(iframe);if(doc.fonts?.ready)await doc.fonts.ready;await sleep(150);api.hideControls();api.setWedgeProgress(0);api.setWedgeOpacity(.70);api.setSpiralProgress(0);api.setSpiralTone("gold");
       exportBtn.textContent="Preparing labels…";const labelLayer=makeLabelLayer(svg),canvas=document.createElement("canvas");canvas.width=SIZE;canvas.height=SIZE;const ctx=canvas.getContext("2d",{alpha:false});ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";await drawSvgFrame(svg,ctx,labelLayer);const mp4=await createMp4Encoder(canvas);let frame=0;
       async function commitFrame(){await drawSvgFrame(svg,ctx,labelLayer);await mp4.add(canvas,frame++);}
       exportBtn.textContent=mp4.mode==="mediarecorder"?"Recording MP4…":"Rendering MP4…";
       for(let i=0;i<INITIAL_FRAMES;i++)await commitFrame();
-      for(let i=1;i<=REVEAL_FRAMES;i++){api.setWedgeOpacity(.70*(i/REVEAL_FRAMES));await commitFrame();}
-      api.setWedgeOpacity(.70);
-      for(let i=1;i<=SPIRAL_FRAMES;i++){const t=i/SPIRAL_FRAMES;api.setSpiralProgress(1-Math.pow(1-t,3.2));await commitFrame();}
+      const growthFrames=Math.max(WEDGE_FRAMES,SPIRAL_DELAY_FRAMES+SPIRAL_FRAMES);
+      for(let i=1;i<=growthFrames;i++){
+        if(i<=WEDGE_FRAMES)api.setWedgeProgress(i/WEDGE_FRAMES);else api.setWedgeProgress(1);
+        if(i>SPIRAL_DELAY_FRAMES){const t=Math.min(1,(i-SPIRAL_DELAY_FRAMES)/SPIRAL_FRAMES);api.setSpiralProgress(1-Math.pow(1-t,3.2));}
+        await commitFrame();
+      }
       api.setSpiralProgress(1);api.setSpiralTone("gold");for(let i=0;i<GOLD_FRAMES+FINAL_FRAMES;i++)await commitFrame();
       exportBtn.textContent="Finalising MP4…";const output=await mp4.finish();downloadBlob(output,`${exportBaseName()}.mp4`);exportBtn.textContent="MP4 exported";setTimeout(()=>exportBtn.textContent=original,2500);
     }catch(error){console.error("NCD Pot Plant video export failed:",error);alert(`Video export failed: ${error.message}`);exportBtn.textContent=original;}finally{if(iframe)iframe.remove();exportBtn.disabled=false;updateFilenamePreview();}
