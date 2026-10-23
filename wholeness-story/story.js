@@ -1,0 +1,15 @@
+const qs=new URLSearchParams(location.search),scores=(qs.get("scores")||"65.74,53.52,59.01").split(",").map(Number);
+const C=[{n:"Embracing Relationships",c:"#477B3A"},{n:"Purposeful Contribution",c:"#98403D"},{n:"Unshakable Confidence",c:"#37547E"}],svg=document.getElementById("viz"),wg=document.getElementById("wedges"),lg=document.getElementById("labels"),sp=document.getElementById("spiral"),cx=440,cy=440,start=-150,sector=120,minR=108,maxR=348;
+const NS="http://www.w3.org/2000/svg",rad=d=>d*Math.PI/180,polar=(r,a)=>[cx+r*Math.cos(rad(a)),cy+r*Math.sin(rad(a))];
+function wedgePath(r,i){let a=start+i*sector,b=a+sector,p1=polar(r,a),p2=polar(r,b);return `M${cx},${cy}L${p1[0]},${p1[1]}A${r},${r} 0 0 1 ${p2[0]},${p2[1]}Z`}
+const paths=C.map((q,i)=>{let p=document.createElementNS(NS,"path");p.setAttribute("fill",q.c);p.setAttribute("opacity",".62");p.setAttribute("filter","url(#soft)");wg.appendChild(p);return p});
+const labels=C.map((q,i)=>{let t=document.createElementNS(NS,"text"),p=polar(390,start+i*sector+60);t.setAttribute("x",p[0]);t.setAttribute("y",p[1]);t.setAttribute("text-anchor","middle");t.setAttribute("font-size","25");t.setAttribute("font-weight","750");t.setAttribute("fill","#223029");t.textContent=q.n;t.style.opacity=0;lg.appendChild(t);return t});
+function rankR(){let order=scores.map((s,i)=>({s,i})).sort((a,b)=>a.s-b.s),out=[];order.forEach((x,k)=>out[x.i]=minR+k*80);return out}const target=rankR();
+function clamp(x,a=0,b=1){return Math.max(a,Math.min(b,x))}function lerp(a,b,t){return a+(b-a)*t}
+function equalPace(p,i){let distances=target.map(r=>r-24),mx=Math.max(...distances),travel=p*mx;return 24+Math.min(travel,distances[i])}
+function spiralPoints(p){let theta=-Math.PI/2,end=theta+p*7*Math.PI,pts=[];for(;theta<=end;theta+=.035){let r=40/(2*Math.PI)*(theta+Math.PI/2);if(r>Math.min(...target))break;pts.push([cx+r*Math.cos(theta),cy+r*Math.sin(theta)])}return pts.map((q,i)=>(i?"L":"M")+q[0].toFixed(1)+","+q[1].toFixed(1)).join("")}
+function render(progress){let b=progress*10, intro=clamp((b-0.4)/3.8),shape=clamp((b-4.8)/1.8),final=clamp((b-6.2)/.8),flow=clamp((b-8.2)/1.6);
+ paths.forEach((p,i)=>{let reveal=clamp((b-(1.5+i*.8))/.8),r=lerp(24,minR+35,reveal);if(shape>0)r=equalPace(shape,i);if(final>0)r=lerp(r,target[i],final);p.setAttribute("d",wedgePath(r,i));p.style.opacity=.18+.55*reveal;labels[i].style.opacity=clamp((b-(2+i*.7))/.7)});
+ sp.setAttribute("d",spiralPoints(flow));sp.style.opacity=flow?1:0}
+function update(){let rect=document.getElementById("story").getBoundingClientRect(),scrollable=document.getElementById("story").offsetHeight-innerHeight,p=clamp(-rect.top/scrollable);render(p);let beat=Math.round(p*10);document.querySelectorAll(".beats article").forEach((e,i)=>e.classList.toggle("active",i===beat))}
+addEventListener("scroll",update,{passive:true});addEventListener("resize",update);render(0);update();
