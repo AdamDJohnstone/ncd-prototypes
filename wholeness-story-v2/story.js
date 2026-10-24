@@ -23,10 +23,12 @@ function setNarrativeForScroll(dy){let i=activeBeatAt(dy);if(i<0)return setNarra
 function renderAt(y){
  const dy=y-scrollY;setNarrativeForScroll(dy);
  const growthBeats=[2,3,4];
- paths.forEach((path,i)=>{let gp=beatProgressAt(growthBeats[i],dy),r=phase1;
+ paths.forEach((path,i)=>{
+   let gp=beatProgressAt(growthBeats[i],dy),r=phase1;
    if(gp>.32)r=phase1+(phase2-phase1)*ease(clamp((gp-.32)/.34));
-   const profile=beatProgressAt(5,dy);
-   if(profile>.58)r=equalGrow(clamp((profile-.58)/.28),i);
+   const q3=beatProgressAt(4,dy),profile=beatProgressAt(5,dy);
+   const personalP=Math.max(clamp((q3-.82)/.18),clamp(profile/.20));
+   if(personalP>0)r=equalGrow(personalP,i);
    path.setAttribute("d",wp(r,i));
    let lo=clamp((gp-.69)/.12);labels.filter(v=>v.i===i).forEach(v=>v.t.style.opacity=lo)
  });
