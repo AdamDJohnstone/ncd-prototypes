@@ -1,5 +1,6 @@
-const Q=new URLSearchParams(location.search),scores=(Q.get("scores")||"65.74,53.52,59.01").split(",").map(Number),name=Q.get("name")||"Adam";document.getElementById("personName").textContent=name;
-const personName=document.getElementById("personName");if(personName)personName.textContent=name;\nconst C=[{k:"ER",lines:[["Embracing",1],["Relationships",0]],c:"#477B3A"},{k:"PC",lines:[["Purposeful",1],["Contribution",0]],c:"#98403D"},{k:"UC",lines:[["Unshakable",1],["Confidence",0]],c:"#37547E"}],NS="http://www.w3.org/2000/svg",cx=440,cy=440,start=-150,sec=120,base=24,phase1=104,phase2=190,finalMin=190,step=68,spiralGrowth=40;
+const Q=new URLSearchParams(location.search),scores=(Q.get("scores")||"65.74,53.52,59.01").split(",").map(Number),name=Q.get("name")||"Adam";
+const personName=document.getElementById("personName");if(personName)personName.textContent=name;
+const C=[{k:"ER",lines:[["Embracing",1],["Relationships",0]],c:"#477B3A"},{k:"PC",lines:[["Purposeful",1],["Contribution",0]],c:"#98403D"},{k:"UC",lines:[["Unshakable",1],["Confidence",0]],c:"#37547E"}],NS="http://www.w3.org/2000/svg",cx=440,cy=440,start=-150,sec=120,base=24,phase1=104,phase2=190,finalMin=190,step=68,spiralGrowth=40;
 const rad=d=>d*Math.PI/180,polar=(r,a)=>[cx+r*Math.cos(rad(a)),cy+r*Math.sin(rad(a))],clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x)),ease=t=>1-Math.pow(1-clamp(t),2.3);
 function wp(r,i){let a=start+i*sec,b=a+sec,p=polar(r,a),q=polar(r,b);return `M${cx},${cy}L${p[0]},${p[1]}A${r},${r} 0 0 1 ${q[0]},${q[1]}Z`}
 function ranks(){let o=scores.map((s,i)=>({s,i})).sort((a,b)=>a.s-b.s),r=[];o.forEach((x,k)=>r[x.i]=finalMin+k*step);return r}const targets=ranks(),minI=targets.indexOf(Math.min(...targets));
