@@ -12,7 +12,7 @@ const sp=document.getElementById("spiral"),su=document.getElementById("spiralUnd
 function equalGrow(t,i){if(i===minI)return phase2;let d=targets.map(x=>Math.max(0,x-phase2)),mx=Math.max(...d),travel=ease(t)*mx;return phase2+Math.min(travel,d[i])}
 function spiralFull(){let th=-Math.PI/2,pts=[],b=spiralGrowth/(2*Math.PI),last=null;for(let n=0;n<4000;n++,th+=.012){let r=b*(th+Math.PI/2),deg=((th*180/Math.PI)%360+360)%360,sector=Math.floor((((deg-start)%360)+360)%360/sec);if(r>targets[minI] && sector===minI){last=pts[pts.length-1];break}let x=cx+r*Math.cos(th),y=cy+r*Math.sin(th);pts.push([x,y]);if(r>430)break}return {pts,last:pts[pts.length-1]}}const sf=spiralFull();
 function spiralD(t){let n=Math.max(0,Math.floor(sf.pts.length*clamp(t)));return sf.pts.slice(0,n).map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+","+p[1].toFixed(1)).join("")}
-function setNarrative(html,opacity=1){if(nar.dataset.html!==html){nar.innerHTML=html;nar.dataset.html=html}nar.style.opacity=opacity}
+function setNarrative(html,opacity=1){nar.replaceChildren();if(html){const tpl=document.createElement("template");tpl.innerHTML=html.trim();nar.append(...tpl.content.cloneNode(true).childNodes)}nar.style.opacity=opacity}
 function articleHTML(i){return arts[i]?.innerHTML||""}
 function textAt(x){
   const fade=(a,b)=>clamp((x-a)/(b-a)), out=(a,b)=>1-clamp((x-a)/(b-a));
