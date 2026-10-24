@@ -17,25 +17,25 @@ function articleHTML(i){return arts[i]?.innerHTML||""}
 function textAt(x){
   const fade=(a,b)=>clamp((x-a)/(b-a)), out=(a,b)=>1-clamp((x-a)/(b-a));
   let i=0,o=1;
-  if(x<1.05){i=0;o=x<.88?1:out(.88,1.05)}
-  else if(x<1.28){return ["",0]}
-  else if(x<1.72){i=1;o=x<1.42?fade(1.28,1.42):out(1.58,1.72)}
-  else if(x<1.90){return ["",0]}
-  else if(x<2.92){i=2;o=x<2.06?fade(1.90,2.06):(x<2.76?1:out(2.76,2.92))}
-  else if(x<3.12){return ["",0]}
-  else if(x<4.14){i=3;o=x<3.28?fade(3.12,3.28):(x<3.98?1:out(3.98,4.14))}
-  else if(x<4.34){return ["",0]}
-  else if(x<5.36){i=4;o=x<4.50?fade(4.34,4.50):(x<5.20?1:out(5.20,5.36))}
-  else if(x<5.60){return ["",0]}
-  else if(x<6.30){i=5;o=x<5.76?fade(5.60,5.76):(x<6.14?1:out(6.14,6.30))}
-  else if(x<6.48){return ["",0]}
-  else if(x<7.72){i=6;o=x<6.64?fade(6.48,6.64):(x<7.56?1:out(7.56,7.72))}
-  else if(x<7.94){return ["",0]}
-  else{i=8;o=x<8.10?fade(7.94,8.10):1}
+  if(x<1.18){i=0;o=x<.98?1:out(.98,1.18)}
+  else if(x<1.42){return ["",0]}
+  else if(x<1.98){i=1;o=x<1.58?fade(1.42,1.58):(x<1.80?1:out(1.80,1.98))}
+  else if(x<2.18){return ["",0]}
+  else if(x<3.36){i=2;o=x<2.34?fade(2.18,2.34):(x<3.18?1:out(3.18,3.36))}
+  else if(x<3.58){return ["",0]}
+  else if(x<4.76){i=3;o=x<3.74?fade(3.58,3.74):(x<4.58?1:out(4.58,4.76))}
+  else if(x<4.98){return ["",0]}
+  else if(x<6.16){i=4;o=x<5.14?fade(4.98,5.14):(x<5.98?1:out(5.98,6.16))}
+  else if(x<6.38){return ["",0]}
+  else if(x<7.40){i=5;o=x<6.54?fade(6.38,6.54):(x<7.22?1:out(7.22,7.40))}
+  else if(x<7.62){return ["",0]}
+  else if(x<9.16){i=6;o=x<7.78?fade(7.62,7.78):(x<8.98?1:out(8.98,9.16))}
+  else if(x<9.46){return ["",0]}
+  else{i=8;o=x<9.62?fade(9.46,9.62):1}
   return [articleHTML(i),o]
 }
-function render(p){let x=p*8.6,[html,op]=textAt(x);setNarrative(html,op);
- const seq=[{q:1.90,g:2.18,e:2.62,l:2.68},{q:3.12,g:3.40,e:3.84,l:3.90},{q:4.34,g:4.62,e:5.06,l:5.12}];
- paths.forEach((path,i)=>{let z=seq[i],r=phase1;if(x>=z.g){r=phase1+(phase2-phase1)*ease(clamp((x-z.g)/(z.e-z.g)))}if(x>=5.55){r=equalGrow(clamp((x-5.55)/.72),i)}path.setAttribute("d",wp(r,i));let lo=clamp((x-z.l)/.16);labels.filter(v=>v.i===i).forEach(v=>v.t.style.opacity=lo)});
- let flow=clamp((x-6.68)/.92),d=spiralD(flow);sp.setAttribute("d",d);su.setAttribute("d",d);if(flow>.995){let z=sf.last;dot.setAttribute("cx",z[0]);dot.setAttribute("cy",z[1]);dot.setAttribute("opacity","1")}else dot.setAttribute("opacity","0")}
+function render(p){let x=p*10.1,[html,op]=textAt(x);setNarrative(html,op);
+ const seq=[{g:2.52,e:2.98,l:3.04},{g:3.92,e:4.38,l:4.44},{g:5.32,e:5.78,l:5.84}];
+ paths.forEach((path,i)=>{let z=seq[i],r=phase1;if(x>=z.g){r=phase1+(phase2-phase1)*ease(clamp((x-z.g)/(z.e-z.g)))}if(x>=6.62){r=equalGrow(clamp((x-6.62)/.82),i)}path.setAttribute("d",wp(r,i));let lo=clamp((x-z.l)/.16);labels.filter(v=>v.i===i).forEach(v=>v.t.style.opacity=lo)});
+ let flow=clamp((x-7.82)/1.12),d=spiralD(flow);sp.setAttribute("d",d);su.setAttribute("d",d);if(flow>.995){let z=sf.last;dot.setAttribute("cx",z[0]);dot.setAttribute("cy",z[1]);dot.setAttribute("opacity","1")}else dot.setAttribute("opacity","0")}
 function update(){let s=document.getElementById("story"),r=s.getBoundingClientRect(),den=s.offsetHeight-innerHeight,p=clamp(-r.top/den);render(p)}addEventListener("scroll",update,{passive:true});addEventListener("resize",update);update();
