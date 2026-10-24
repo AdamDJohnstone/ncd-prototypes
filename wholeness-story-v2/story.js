@@ -17,7 +17,7 @@ function articleHTML(i){return arts[i]?.innerHTML||""}
 function beatProgress(i){const el=arts[i],r=el.getBoundingClientRect(),vh=innerHeight;return clamp((vh*.72-r.top)/(el.offsetHeight-vh*.18))}
 function beatVisibility(i){let p=beatProgress(i);return p<.12?p/.12:p>.82?(1-p)/.18:1}
 function activeBeat(){let best=-1,dist=1e9;arts.forEach((el,i)=>{let r=el.getBoundingClientRect(),c=r.top+r.height*.42,d=Math.abs(c-innerHeight*.52);if(d<dist){dist=d;best=i}});return best}
-function setNarrativeForScroll(){let i=activeBeat();if(i<0)return setNarrative("",0);let p=beatProgress(i),op=beatVisibility(i);if(i===7)return setNarrative("",0);setNarrative(articleHTML(i),op)}
+function setNarrativeForScroll(){let i=activeBeat();if(i<0)return setNarrative("",0);let p=beatProgress(i),op=beatVisibility(i);if(i===7)return setNarrative("",0);if(i===6)op=p<.12?p/.12:(p>.94?(1-p)/.06:1);setNarrative(articleHTML(i),op)}
 function render(){
  setNarrativeForScroll();
  const growthBeats=[2,3,4];
