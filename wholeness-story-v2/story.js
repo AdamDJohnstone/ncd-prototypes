@@ -14,22 +14,24 @@ function spiralFull(){let th=-Math.PI/2,pts=[],b=spiralGrowth/(2*Math.PI),last=n
 function spiralD(t){let n=Math.max(0,Math.floor(sf.pts.length*clamp(t)));return sf.pts.slice(0,n).map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+","+p[1].toFixed(1)).join("")}
 function setNarrative(html,opacity=1){nar.replaceChildren();if(html){const tpl=document.createElement("template");tpl.innerHTML=html.trim();nar.append(...tpl.content.cloneNode(true).childNodes)}nar.style.opacity=opacity}
 function articleHTML(i){return arts[i]?.innerHTML||""}
-function beatProgress(i){const el=arts[i],r=el.getBoundingClientRect(),vh=innerHeight;return clamp((vh*.72-r.top)/(el.offsetHeight-vh*.18))}
-function beatVisibility(i){let p=beatProgress(i);return p<.12?p/.12:p>.82?(1-p)/.18:1}
-function activeBeat(){let best=-1,dist=1e9;arts.forEach((el,i)=>{let r=el.getBoundingClientRect(),c=r.top+r.height*.42,d=Math.abs(c-innerHeight*.52);if(d<dist){dist=d;best=i}});return best}
-function setNarrativeForScroll(){let i=activeBeat();if(i<0)return setNarrative("",0);let p=beatProgress(i),op=beatVisibility(i);if(i===7)return setNarrative("",0);if(i===6)op=p<.12?p/.12:(p>.94?(1-p)/.06:1);setNarrative(articleHTML(i),op)}
-function render(){
- setNarrativeForScroll();
+let smoothScrollY=scrollY,targetScrollY=scrollY,raf=0;
+function withScrollY(y,fn){const dy=y-scrollY;return fn(dy)}
+function beatProgressAt(i,dy=0){const el=arts[i],r=el.getBoundingClientRect(),vh=innerHeight,top=r.top-dy;return clamp((vh*.72-top)/(el.offsetHeight-vh*.18))}
+function beatVisibilityAt(i,dy=0){let p=beatProgressAt(i,dy);if(i>=2&&i<=4)return p<.12?p/.12:p>.94?(1-p)/.06:1;return p<.12?p/.12:p>.86?(1-p)/.14:1}
+function activeBeatAt(dy=0){let best=-1,dist=1e9;arts.forEach((el,i)=>{let r=el.getBoundingClientRect(),c=(r.top-dy)+r.height*.42,d=Math.abs(c-innerHeight*.52);if(d<dist){dist=d;best=i}});return best}
+function setNarrativeForScroll(dy){let i=activeBeatAt(dy);if(i<0)return setNarrative("",0);let p=beatProgressAt(i,dy),op=beatVisibilityAt(i,dy);if(i===7)return setNarrative("",0);if(i===6)op=p<.12?p/.12:(p>.96?(1-p)/.04:1);setNarrative(articleHTML(i),op)}
+function renderAt(y){
+ const dy=y-scrollY;setNarrativeForScroll(dy);
  const growthBeats=[2,3,4];
- paths.forEach((path,i)=>{let gp=beatProgress(growthBeats[i]),r=phase1;
+ paths.forEach((path,i)=>{let gp=beatProgressAt(growthBeats[i],dy),r=phase1;
    if(gp>.32)r=phase1+(phase2-phase1)*ease(clamp((gp-.32)/.34));
-   if(i===minI&&gp>.66)r=phase2;
-   const profile=beatProgress(5);
+   const profile=beatProgressAt(5,dy);
    if(profile>.58)r=equalGrow(clamp((profile-.58)/.28),i);
    path.setAttribute("d",wp(r,i));
    let lo=clamp((gp-.69)/.12);labels.filter(v=>v.i===i).forEach(v=>v.t.style.opacity=lo)
  });
- const life=beatProgress(6),flow=clamp((life-.22)/.64),d=spiralD(flow);sp.setAttribute("d",d);su.setAttribute("d",d);
+ const life=beatProgressAt(6,dy),flow=clamp((life-.22)/.64),d=spiralD(flow);sp.setAttribute("d",d);su.setAttribute("d",d);
  if(flow>.995){let z=sf.last;dot.setAttribute("cx",z[0]);dot.setAttribute("cy",z[1]);dot.setAttribute("opacity","1")}else dot.setAttribute("opacity","0")
 }
-function update(){render()}addEventListener("scroll",update,{passive:true});addEventListener("resize",update);update();
+function tick(){const delta=targetScrollY-smoothScrollY;smoothScrollY+=delta*.16;if(Math.abs(delta)<.08)smoothScrollY=targetScrollY;renderAt(smoothScrollY);if(smoothScrollY!==targetScrollY)raf=requestAnimationFrame(tick);else raf=0}
+function update(){targetScrollY=scrollY;if(!raf)raf=requestAnimationFrame(tick)}addEventListener("scroll",update,{passive:true});addEventListener("resize",update);update();
