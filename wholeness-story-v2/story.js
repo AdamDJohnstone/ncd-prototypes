@@ -21,25 +21,27 @@ function beatVisibilityAt(i,dy=0){let p=beatProgressAt(i,dy);if(i>=2&&i<=4)retur
 function activeBeatAt(dy=0){let best=-1,dist=1e9;arts.forEach((el,i)=>{let r=el.getBoundingClientRect(),c=(r.top-dy)+r.height*.42,d=Math.abs(c-innerHeight*.52);if(d<dist){dist=d;best=i}});return best}
 function setNarrativeForScroll(dy){
  let i=activeBeatAt(dy);if(i<0)return setNarrative("",0);
- let p=beatProgressAt(i,dy);
+ const p=beatProgressAt(i,dy),profile=beatProgressAt(5,dy),lifeP=beatProgressAt(6,dy);
  if(i===7)return setNarrative("",0);
- // Personal interpretation gets a deliberately longer hold. When the scroll
- // first enters beat 6, keep beat 5 on screen before handing over to "Life...".
+
+ // Treat "This is where you are today" as one continuous cross-beat scene.
+ // Its position never resets when ownership passes from beat 5 to beat 6.
+ if((i===5&&profile>=.46)||(i===6&&lifeP<.24)){
+   let op=1,shift=0;
+   if(profile<.58){op=clamp((profile-.46)/.12);shift=(1-clamp((profile-.46)/.24))*54}
+   if(i===6&&lifeP>=.14){const out=clamp((lifeP-.14)/.10);op=1-out;shift=-out*54}
+   return setNarrative(articleHTML(5),op,shift)
+ }
+
  if(i===6){
-   const lifeP=beatProgressAt(6,dy);
-   if(lifeP<.24){
-     const hold=lifeP<.14?1:1-(lifeP-.14)/.10;
-     const shift=lifeP<.14?0:-((lifeP-.14)/.10)*54;
-     return setNarrative(articleHTML(5),hold,shift)
-   }
+   if(lifeP<.24)return setNarrative("",0);
    const op=lifeP<.36?(lifeP-.24)/.12:(lifeP>.96?(1-lifeP)/.04:1);
    const shift=lifeP<.48?(1-(lifeP-.24)/.24)*54:lifeP>.76?-((lifeP-.76)/.24)*54:0;
    return setNarrative(articleHTML(6),op,shift)
  }
+
  let op=beatVisibilityAt(i,dy);
- if(i===5){if(p<.46)return setNarrative("",0);op=p<.58?(p-.46)/.12:1}
  let shift=p<.24?(1-p/.24)*54:p>.76?-((p-.76)/.24)*54:0;
- if(i===5&&p<.70)shift=(1-clamp((p-.46)/.24))*54;
  setNarrative(articleHTML(i),op,shift)
 }
 function renderAt(y){
