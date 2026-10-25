@@ -28,6 +28,11 @@ function setNarrativeForScroll(dy){
    const enter=clamp(finalP/.24);
    return setNarrative(articleHTML(8),enter,(1-enter)*54)
  }
+ if(i===8){
+   const finalP=beatProgressAt(8,dy);
+   const enter=clamp(finalP/.24);
+   return setNarrative(articleHTML(8),enter,(1-enter)*54)
+ }
 
  // Beat 5 is one explicit personal-reveal sequence:
  // wedge growth first, then a short silent settle, then one text appearance.
