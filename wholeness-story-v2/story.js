@@ -22,7 +22,12 @@ function activeBeatAt(dy=0){let best=-1,dist=1e9;arts.forEach((el,i)=>{let r=el.
 function setNarrativeForScroll(dy){
  let i=activeBeatAt(dy);if(i<0)return setNarrative("",0);
  const p=beatProgressAt(i,dy),profile=beatProgressAt(5,dy),lifeP=beatProgressAt(6,dy);
- if(i===7)return setNarrative("",0);
+ if(i===7){
+   const finalP=beatProgressAt(8,dy);
+   if(finalP<=0)return setNarrative("",0);
+   const enter=clamp(finalP/.24);
+   return setNarrative(articleHTML(8),enter,(1-enter)*54)
+ }
 
  // Beat 5 is one explicit personal-reveal sequence:
  // wedge growth first, then a short silent settle, then one text appearance.
