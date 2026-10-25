@@ -19,7 +19,29 @@ function withScrollY(y,fn){const dy=y-scrollY;return fn(dy)}
 function beatProgressAt(i,dy=0){const el=arts[i],r=el.getBoundingClientRect(),vh=innerHeight,top=r.top-dy;return clamp((vh*.72-top)/(el.offsetHeight-vh*.18))}
 function beatVisibilityAt(i,dy=0){let p=beatProgressAt(i,dy);if(i>=2&&i<=4)return p<.12?p/.12:p>.94?(1-p)/.06:1;return p<.12?p/.12:p>.86?(1-p)/.14:1}
 function activeBeatAt(dy=0){let best=-1,dist=1e9;arts.forEach((el,i)=>{let r=el.getBoundingClientRect(),c=(r.top-dy)+r.height*.42,d=Math.abs(c-innerHeight*.52);if(d<dist){dist=d;best=i}});return best}
-function setNarrativeForScroll(dy){let i=activeBeatAt(dy);if(i<0)return setNarrative("",0);let p=beatProgressAt(i,dy),op=beatVisibilityAt(i,dy);if(i===7)return setNarrative("",0);if(i===5){if(p<.46)return setNarrative("",0);op=p<.58?(p-.46)/.12:(p>.98?(1-p)/.02:1)}if(i===6)op=p<.12?p/.12:(p>.96?(1-p)/.04:1);let shift=p<.24?(1-p/.24)*54:p>.76?-((p-.76)/.24)*54:0;if(i===5&&p<.70)shift=(1-clamp((p-.46)/.24))*54;setNarrative(articleHTML(i),op,shift)}
+function setNarrativeForScroll(dy){
+ let i=activeBeatAt(dy);if(i<0)return setNarrative("",0);
+ let p=beatProgressAt(i,dy);
+ if(i===7)return setNarrative("",0);
+ // Personal interpretation gets a deliberately longer hold. When the scroll
+ // first enters beat 6, keep beat 5 on screen before handing over to "Life...".
+ if(i===6){
+   const lifeP=beatProgressAt(6,dy);
+   if(lifeP<.24){
+     const hold=lifeP<.14?1:1-(lifeP-.14)/.10;
+     const shift=lifeP<.14?0:-((lifeP-.14)/.10)*54;
+     return setNarrative(articleHTML(5),hold,shift)
+   }
+   const op=lifeP<.36?(lifeP-.24)/.12:(lifeP>.96?(1-lifeP)/.04:1);
+   const shift=lifeP<.48?(1-(lifeP-.24)/.24)*54:lifeP>.76?-((lifeP-.76)/.24)*54:0;
+   return setNarrative(articleHTML(6),op,shift)
+ }
+ let op=beatVisibilityAt(i,dy);
+ if(i===5){if(p<.46)return setNarrative("",0);op=p<.58?(p-.46)/.12:1}
+ let shift=p<.24?(1-p/.24)*54:p>.76?-((p-.76)/.24)*54:0;
+ if(i===5&&p<.70)shift=(1-clamp((p-.46)/.24))*54;
+ setNarrative(articleHTML(i),op,shift)
+}
 function renderAt(y){
  const dy=y-scrollY;setNarrativeForScroll(dy);
  const growthBeats=[2,3,4];
