@@ -24,19 +24,21 @@ function setNarrativeForScroll(dy){
  const p=beatProgressAt(i,dy),profile=beatProgressAt(5,dy),lifeP=beatProgressAt(6,dy);
  if(i===7)return setNarrative("",0);
 
- // Treat "This is where you are today" as one continuous cross-beat scene.
- // Its position never resets when ownership passes from beat 5 to beat 6.
- if((i===5&&profile>=.46)||(i===6&&lifeP<.24)){
-   let op=1,shift=0;
-   if(profile<.58){op=clamp((profile-.46)/.12);shift=(1-clamp((profile-.46)/.24))*54}
-   if(i===6&&lifeP>=.14){const out=clamp((lifeP-.14)/.10);op=1-out;shift=-out*54}
+ // Beat 5 is one explicit personal-reveal sequence:
+ // wedge growth first, then a short silent settle, then one text appearance.
+ if(i===5){
+   if(profile<.48)return setNarrative("",0);
+   const enter=clamp((profile-.48)/.12);
+   const op=profile>.92?1-clamp((profile-.92)/.08):enter;
+   const shift=profile<.60?(1-enter)*54:profile>.92?-clamp((profile-.92)/.08)*54:0;
    return setNarrative(articleHTML(5),op,shift)
  }
 
+ // Do not repeat beat 5 once beat 6 owns the narrative.
  if(i===6){
-   if(lifeP<.24)return setNarrative("",0);
-   const op=lifeP<.36?(lifeP-.24)/.12:(lifeP>.96?(1-lifeP)/.04:1);
-   const shift=lifeP<.48?(1-(lifeP-.24)/.24)*54:lifeP>.76?-((lifeP-.76)/.24)*54:0;
+   if(lifeP<.18)return setNarrative("",0);
+   const op=lifeP<.30?(lifeP-.18)/.12:(lifeP>.96?(1-lifeP)/.04:1);
+   const shift=lifeP<.42?(1-(lifeP-.18)/.24)*54:lifeP>.76?-((lifeP-.76)/.24)*54:0;
    return setNarrative(articleHTML(6),op,shift)
  }
 
