@@ -42,8 +42,8 @@ function setNarrativeForScroll(dy){
  // Do not repeat beat 5 once beat 6 owns the narrative.
  if(i===6){
    if(lifeP<.18)return setNarrative("",0);
-   const op=lifeP<.30?(lifeP-.18)/.12:(lifeP>.96?(1-lifeP)/.04:1);
-   const shift=lifeP<.42?(1-(lifeP-.18)/.24)*54:lifeP>.76?-((lifeP-.76)/.24)*54:0;
+   const op=lifeP<.30?(lifeP-.18)/.12:(lifeP>.76?1-clamp((lifeP-.76)/.24):1);
+   const shift=lifeP<.42?(1-(lifeP-.18)/.24)*54:lifeP>.76?-clamp((lifeP-.76)/.24)*54:0;
    return setNarrative(articleHTML(6),op,shift)
  }
 
