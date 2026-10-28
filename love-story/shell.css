@@ -7,3 +7,8 @@
 body[data-view="home"] .result-strip{position:relative;top:auto;left:auto;right:auto;transition:none}
 body[data-view="home"] .stage{padding-top:3vh}
 @media(max-width:760px){body[data-view="home"] .stage{padding-top:0}}
+
+/* Keep the result-level exit visually separate from the perspective navigation. */
+.result-strip{position:relative;padding-right:max(72px,5vw)}
+.result-strip .result-close{position:absolute;right:max(14px,2.5vw);top:50%;transform:translateY(-50%);margin:0}
+@media(max-width:760px){.result-strip{padding-right:64px}.result-strip .result-close{right:12px}}
