@@ -4,7 +4,7 @@
   const {qualities, language, minimumIndex} = window.NCDChurchSurvey;
   const NS = 'http://www.w3.org/2000/svg';
   const cx = 440, cy = 440, startDeg = -112.5, sectorDeg = 45;
-  const initialRadius = 60, explanatoryRadius = 108;
+  const initialRadius = 60, explanatoryRadius = 96;
   const clamp = n => Math.max(0, Math.min(1, n));
   const ease = n => 1 - Math.pow(1 - clamp(n), 2.4);
   const rad = d => d * Math.PI / 180;

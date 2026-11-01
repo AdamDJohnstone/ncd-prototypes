@@ -1,1 +1,52 @@
-(()=>{const env=document.querySelector(".result-environment"),story=document.querySelector(".results-layer"),shell=document.querySelector(".results-shell"),strip=document.querySelector(".result-strip"),toggle=document.querySelector(".result-strip-toggle"),nav=[...document.querySelectorAll("[data-section]")],title=document.querySelector(".results-section-title"),copy=document.querySelector(".results-section-copy"),cards=document.querySelector(".explore-cards"),names={home:"Church Survey",why:"Why it matters",reveals:"What it reveals",difference:"Make a difference"},prompts={why:"Why does this matter?",reveals:"What is it revealing?",difference:"How can I make a difference?"};function renderCards(s){if(!cards)return;cards.innerHTML=s==="home"?"":[1,2,3].map(i=>'<button class="explore-card"><span class="explore-card-title">Lorem ipsum '+i+'</span><span class="explore-card-subtitle">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</span></button>').join("")}function setStripHeight(){document.documentElement.style.setProperty("--result-strip-height",document.querySelector(".result-strip").getBoundingClientRect().height+"px")}addEventListener("resize",setStripHeight);setStripHeight();function choose(s){s=names[s]?s:"home";document.body.dataset.view=s;nav.forEach(b=>b.setAttribute("aria-current",b.dataset.section===s?"page":"false"));story.hidden=s!=="home";shell.hidden=s==="home";title.textContent=names[s];copy.textContent=prompts[s]||"";renderCards(s);strip.classList.remove("expanded");if(toggle)toggle.setAttribute("aria-expanded","false");scrollTo(0,0);document.dispatchEvent(new Event("resultviewchange"))}nav.forEach(b=>b.onclick=()=>choose(b.dataset.section));if(toggle)toggle.onclick=()=>{const open=strip.classList.toggle("expanded");toggle.setAttribute("aria-expanded",String(open))};document.querySelectorAll("[data-destination]").forEach(b=>b.onclick=()=>choose(b.dataset.destination));document.querySelector(".result-close").onclick=()=>{env.classList.add("closed");scrollTo(0,0)};document.querySelector(".mock-result-open").onclick=()=>{env.classList.remove("closed");choose("home")};choose("home")})();
+/* Independent copy of the Wholeness focused-context shell. */
+(() => {
+  const env = document.querySelector('.result-environment');
+  const app = document.querySelector('.mock-app');
+  const story = document.querySelector('.results-layer'), shell = document.querySelector('.results-shell');
+  const strip = document.querySelector('.result-strip'), toggle = document.querySelector('.result-strip-toggle');
+  const nav = [...document.querySelectorAll('[data-section]')];
+  const title = document.querySelector('.results-section-title'), copy = document.querySelector('.results-section-copy');
+  const cards = document.querySelector('.explore-cards');
+  const names = {home:'Church Survey', why:'Why it matters', reveals:'What it reveals', difference:'Make a difference'};
+  const prompts = {why:'Why does this matter?', reveals:'What is it revealing?', difference:'How can I make a difference?'};
+  function setStripHeight() {
+    if (strip.getClientRects().length) document.documentElement.style.setProperty('--result-strip-height', strip.getBoundingClientRect().height + 'px');
+  }
+  function choose(section) {
+    const key = names[section] ? section : 'home';
+    document.body.dataset.view = key;
+    nav.forEach(button => button.setAttribute('aria-current', button.dataset.section === key ? 'page' : 'false'));
+    story.hidden = key !== 'home';
+    shell.hidden = key === 'home';
+    title.textContent = names[key];
+    copy.textContent = prompts[key] || '';
+    cards.innerHTML = key === 'home' ? '' : [1,2,3].map(i => `<button class="explore-card"><span class="explore-card-title">Lorem ipsum ${i}</span><span class="explore-card-subtitle">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</span></button>`).join('');
+    strip.classList.remove('expanded');
+    toggle.setAttribute('aria-expanded', 'false');
+    setStripHeight();
+    scrollTo(0, 0);
+    document.dispatchEvent(new Event('resultviewchange'));
+  }
+  function leave() {
+    env.classList.add('closed');
+    app.inert = false;
+    app.setAttribute('aria-hidden', 'false');
+    scrollTo(0, 0);
+    document.querySelector('.mock-result-open').focus({preventScroll:true});
+  }
+  nav.forEach(button => button.onclick = () => choose(button.dataset.section));
+  toggle.onclick = () => toggle.setAttribute('aria-expanded', String(strip.classList.toggle('expanded')));
+  document.querySelectorAll('[data-destination]').forEach(button => button.onclick = () => choose(button.dataset.destination));
+  document.querySelector('.result-close').onclick = leave;
+  document.querySelector('.mock-result-open').onclick = () => {
+    app.inert = true;
+    app.setAttribute('aria-hidden', 'true');
+    env.classList.remove('closed');
+    choose('home');
+    document.querySelector('.result-close').focus({preventScroll:true});
+  };
+  document.addEventListener('keydown', event => { if (event.key === 'Escape' && !env.classList.contains('closed')) leave(); });
+  addEventListener('resize', setStripHeight);
+  new ResizeObserver(setStripHeight).observe(strip);
+  choose('home');
+})();
