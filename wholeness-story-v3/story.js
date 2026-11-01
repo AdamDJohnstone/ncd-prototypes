@@ -21,22 +21,4 @@ function triggerSpiral(){if(spiralState!=="ready")return;spiralState="running";s
 function resetSpiral(){cancelAnimationFrame(spiralRAF);spiralState="ready";spiralStart=0;wrap.style.opacity=0;setTimeout(()=>{if(spiralState==="ready")drawSpiral(0)},320)}
 function updateSpiral(){const r=life.getBoundingClientRect(),vh=innerHeight,forward=scrollY>=lastY;if(forward&&r.top<vh*.58&&r.bottom>vh*.15)triggerSpiral();if(!forward&&r.top>vh*.72&&spiralState!=="ready")resetSpiral();lastY=scrollY}
 function update(){renderWedges();updateSpiral()}addEventListener("scroll",update,{passive:true});addEventListener("resize",update);drawSpiral(0);wrap.style.opacity=0;update();
-const textBeats=[...document.querySelectorAll(".scroll-copy .beat")];
-function renderTextBeats(){
-  const vh=innerHeight;
-  textBeats.forEach((el,i)=>{
-    const r=el.getBoundingClientRect();
-    if(i===0 && scrollY<innerHeight*.12){el.style.setProperty("--beat-shift","0px");el.style.setProperty("--beat-opacity","1");return}
-    const center=r.top+r.height*.5;
-    const delta=center-vh*.5;
-    const range=vh*.72;
-    const norm=clamp(delta/range,-1,1);
-    let shift=norm*vh*.46;
-    let opacity=1-clamp((Math.abs(norm)-.72)/.28);
-    el.style.setProperty("--beat-shift",shift+"px");
-    el.style.setProperty("--beat-opacity",opacity);
-  });
-}
-const oldUpdate=update;
-update=function(){renderWedges();updateSpiral();renderTextBeats()};
-renderTextBeats();
+const resultStrip=document.querySelector(".result-strip");function compensateStage(){const h=resultStrip?resultStrip.getBoundingClientRect().bottom:0;document.documentElement.style.setProperty("--stage-comp",Math.min(0,-Math.max(0,h)/2)+"px")}addEventListener("scroll",compensateStage,{passive:true});addEventListener("resize",compensateStage);compensateStage();
