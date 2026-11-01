@@ -3,3 +3,14 @@
    Result chrome remains normal document content and scrolls away independently. */
 body[data-view="home"] .story{margin-top:calc(-1 * var(--result-strip-height,0px));padding-top:var(--result-strip-height,0px)}
 body[data-view="home"] .stage{top:0}
+
+/* v3.5: visual stage is viewport-pinned from the first frame; text beats no longer
+   use sticky positioning, preventing adjacent copy from stacking/bumping. */
+body[data-view="home"] .stage{position:fixed;top:0;left:0;right:0;width:100%;z-index:2}
+body[data-view="home"] .scroll-copy{z-index:4}
+body[data-view="home"] .beat.hold>div,
+body[data-view="home"] .beat.life>div{position:relative;top:auto}
+body[data-view="home"] .beat{min-height:100vh;align-items:center}
+body[data-view="home"] .beat.question{min-height:112vh}
+body[data-view="home"] .beat>div{transform:translateY(var(--beat-shift,0px));opacity:var(--beat-opacity,1);will-change:transform,opacity}
+body[data-view="home"] .story{margin-top:0;padding-top:0}
