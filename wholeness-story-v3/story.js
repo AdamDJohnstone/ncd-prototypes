@@ -24,8 +24,9 @@ function update(){renderWedges();updateSpiral()}addEventListener("scroll",update
 const textBeats=[...document.querySelectorAll(".scroll-copy .beat")];
 function renderTextBeats(){
   const vh=innerHeight;
-  textBeats.forEach(el=>{
+  textBeats.forEach((el,i)=>{
     const r=el.getBoundingClientRect();
+    if(i===0 && scrollY<innerHeight*.12){el.style.setProperty("--beat-shift","0px");el.style.setProperty("--beat-opacity","1");return}
     const center=r.top+r.height*.5;
     const delta=center-vh*.5;
     const range=vh*.72;
