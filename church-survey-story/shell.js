@@ -9,6 +9,7 @@
   const cards = document.querySelector('.explore-cards');
   const names = {home:'Church Survey', why:'Why it matters', reveals:'What it reveals', difference:'Make a difference', collaborate:'Collaborate'};
   const prompts = {why:'Why does this matter?', reveals:'What is it revealing?', difference:'How can I make a difference?'};
+  const whyCardTitles = ['🗣️ The Voice of Our People', '👁️ How We Look from the Outside', '🙌 For Those Who Carry Responsibility'];
   function setStripHeight() {
     if (strip.getClientRects().length) document.documentElement.style.setProperty('--result-strip-height', strip.getBoundingClientRect().height + 'px');
   }
@@ -20,7 +21,7 @@
     shell.hidden = key === 'home';
     title.textContent = names[key];
     copy.textContent = prompts[key] || '';
-    cards.innerHTML = !prompts[key] ? '' : [1,2,3].map(i => `<button class="explore-card"><span class="explore-card-title">Lorem ipsum ${i}</span><span class="explore-card-subtitle">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</span></button>`).join('');
+    cards.innerHTML = !prompts[key] ? '' : [1,2,3].map(i => `<button class="explore-card"><span class="explore-card-title">${key === 'why' ? whyCardTitles[i - 1] : `Lorem ipsum ${i}`}</span><span class="explore-card-subtitle">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</span></button>`).join('');
     strip.classList.remove('expanded');
     toggle.setAttribute('aria-expanded', 'false');
     setStripHeight();
