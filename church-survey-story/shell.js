@@ -12,7 +12,7 @@
   const cardTitles = {
     why: ['🗣️ The Voice of Our People', '👁️ How We Look from the Outside', '🙌 For Those Who Carry Responsibility'],
     reveals: ['📊 The Story in the Data', '📖 Scripture Reflection'],
-    difference: ['Lorem ipsum 1', 'Lorem ipsum 2', 'Lorem ipsum 3']
+    difference: ['🌱 Three Ways to Add Life', '🔍 Disciple Reality Check']
   };
   function setStripHeight() {
     if (strip.getClientRects().length) document.documentElement.style.setProperty('--result-strip-height', strip.getBoundingClientRect().height + 'px');
