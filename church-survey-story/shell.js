@@ -9,7 +9,7 @@
   const cards = document.querySelector('.explore-cards');
   const readings = [...document.querySelectorAll('[data-reading]')];
   const readingRoutes = readings.map(article => article.dataset.reading);
-  const names = {home:'Church Survey', why:'Why it matters', reveals:'What it reveals', difference:'Make a difference', collaborate:'Collaborate', 'voice-of-our-people':'The Voice of Our People', 'how-we-look-from-the-outside':'How We Look from the Outside', 'for-those-who-carry-responsibility':'For Those Who Carry Responsibility', 'the-story-in-the-data':'The Story in the Data', 'scripture-reflection':'Scripture Reflection', 'three-ways-to-add-life':'Three Ways to Add Life'};
+  const names = {home:'Church Survey', why:'Why it matters', reveals:'What it reveals', difference:'Make a difference', collaborate:'Collaborate', 'voice-of-our-people':'The Voice of Our People', 'how-we-look-from-the-outside':'How We Look from the Outside', 'for-those-who-carry-responsibility':'For Those Who Carry Responsibility', 'the-story-in-the-data':'The Story in the Data', 'scripture-reflection':'Scripture Reflection', 'three-ways-to-add-life':'Three Ways to Add Life', 'disciple-reality-check':'Disciple Reality Check'};
   const prompts = {why:'Why does this matter?', reveals:'What is it revealing?', difference:'How can I make a difference?'};
   const cardTitles = {
     why: ['🗣️ The Voice of Our People', '👁️ How We Look from the Outside', '🙌 For Those Who Carry Responsibility'],
@@ -22,7 +22,7 @@
   function choose(section) {
     const key = names[section] ? section : 'home';
     const isReading = readingRoutes.includes(key);
-    const navKey = key === 'three-ways-to-add-life' ? 'difference' : ['the-story-in-the-data', 'scripture-reflection'].includes(key) ? 'reveals' : isReading ? 'why' : key;
+    const navKey = ['three-ways-to-add-life', 'disciple-reality-check'].includes(key) ? 'difference' : ['the-story-in-the-data', 'scripture-reflection'].includes(key) ? 'reveals' : isReading ? 'why' : key;
     document.body.dataset.view = key;
     document.title = `${names[key]} — Church Survey`;
     readings.forEach(article => { article.hidden = article.dataset.reading !== key; });
@@ -35,7 +35,7 @@
     title.textContent = names[key];
     copy.textContent = prompts[key] || '';
     cards.innerHTML = (cardTitles[key] || []).map((heading, index) => {
-      const route = key === 'why' ? readingRoutes[index] : key === 'reveals' ? ['the-story-in-the-data', 'scripture-reflection'][index] : key === 'difference' && index === 0 ? 'three-ways-to-add-life' : null;
+      const route = key === 'why' ? readingRoutes[index] : key === 'reveals' ? ['the-story-in-the-data', 'scripture-reflection'][index] : key === 'difference' ? ['three-ways-to-add-life', 'disciple-reality-check'][index] : null;
       const linked = Boolean(route);
       const tag = linked ? 'a' : 'button';
       return `<${tag} class="explore-card"${linked ? ` href="#${route}"` : ''}><span class="explore-card-title">${heading}</span><span class="explore-card-subtitle">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</span></${tag}>`;
