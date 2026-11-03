@@ -12,3 +12,17 @@ body[data-reading-page="true"] .results-section-title{font-size:clamp(40px,6vw,7
 .reading-content h3{font-size:clamp(23px,3vw,30px);line-height:1.25;margin:0 0 20px}
 .reading-content p{margin:0 0 1.3em}
 .reading-content .voice-quote{line-height:1.45;margin-bottom:1.5em}
+
+.data-comparison{margin:0 0 48px}
+.data-comparison figcaption{font-size:15px;margin-top:12px}
+.data-reading a{color:#37547E}
+.data-reading h2{margin-top:56px}
+.data-reading h3{margin-top:28px}
+.data-reading li{margin-bottom:.5em}
+.data-reading hr{border:0;border-top:1px solid #d9ddd6;margin:64px 0}
+.data-table-scroll{max-width:100%;overflow-x:auto;margin:32px 0 48px}
+.data-table-scroll table{width:100%;min-width:680px;border-collapse:collapse;font-size:15px;line-height:1.5}
+.data-table-scroll th,.data-table-scroll td{padding:12px;text-align:left;vertical-align:top;border-bottom:1px solid #d9ddd6}
+.data-table-scroll thead{background:#e7e9e3}
+.data-table-scroll tbody th{font-weight:500}
+.data-table-scroll td:nth-child(2),.data-table-scroll td:nth-child(3),.data-table-scroll td:nth-child(4){white-space:nowrap;font-variant-numeric:tabular-nums}
