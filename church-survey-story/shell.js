@@ -7,35 +7,38 @@
   const nav = [...document.querySelectorAll('[data-section]')];
   const title = document.querySelector('.results-section-title'), copy = document.querySelector('.results-section-copy');
   const cards = document.querySelector('.explore-cards');
-  const voice = document.querySelector('.voice-content');
-  const names = {home:'Church Survey', why:'Why it matters', reveals:'What it reveals', difference:'Make a difference', collaborate:'Collaborate', 'voice-of-our-people':'The Voice of Our People'};
+  const readings = [...document.querySelectorAll('[data-reading]')];
+  const readingRoutes = readings.map(article => article.dataset.reading);
+  const names = {home:'Church Survey', why:'Why it matters', reveals:'What it reveals', difference:'Make a difference', collaborate:'Collaborate', 'voice-of-our-people':'The Voice of Our People', 'how-we-look-from-the-outside':'How We Look from the Outside', 'for-those-who-carry-responsibility':'For Those Who Carry Responsibility'};
   const prompts = {why:'Why does this matter?', reveals:'What is it revealing?', difference:'How can I make a difference?'};
   const cardTitles = {
     why: ['🗣️ The Voice of Our People', '👁️ How We Look from the Outside', '🙌 For Those Who Carry Responsibility'],
     reveals: ['📊 The Story in the Data', '📖 Scripture Reflection'],
-    difference: ['🌱 Three Ways to Add Life', '🔍 Disciple Reality Check']
+    difference: ['🌱 Three Ways to Add Life', '🔍 Disciple Reality Check', '🌳 Take the Wholeness Test']
   };
   function setStripHeight() {
     if (strip.getClientRects().length) document.documentElement.style.setProperty('--result-strip-height', strip.getBoundingClientRect().height + 'px');
   }
   function choose(section) {
     const key = names[section] ? section : 'home';
-    const isVoice = key === 'voice-of-our-people';
-    const navKey = isVoice ? 'why' : key;
+    const isReading = readingRoutes.includes(key);
+    const navKey = isReading ? 'why' : key;
     document.body.dataset.view = key;
     document.title = `${names[key]} — Church Survey`;
-    voice.hidden = !isVoice;
-    copy.hidden = isVoice;
-    cards.hidden = isVoice;
+    readings.forEach(article => { article.hidden = article.dataset.reading !== key; });
+    document.body.dataset.readingPage = String(isReading);
+    copy.hidden = isReading;
+    cards.hidden = isReading;
     nav.forEach(button => button.setAttribute('aria-current', button.dataset.section === navKey ? 'page' : 'false'));
     story.hidden = key !== 'home';
     shell.hidden = key === 'home';
     title.textContent = names[key];
     copy.textContent = prompts[key] || '';
     cards.innerHTML = (cardTitles[key] || []).map((heading, index) => {
-      const linked = key === 'why' && index === 0;
+      const route = key === 'why' ? readingRoutes[index] : null;
+      const linked = Boolean(route);
       const tag = linked ? 'a' : 'button';
-      return `<${tag} class="explore-card"${linked ? ' href="#voice-of-our-people"' : ''}><span class="explore-card-title">${heading}</span><span class="explore-card-subtitle">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</span></${tag}>`;
+      return `<${tag} class="explore-card"${linked ? ` href="#${route}"` : ''}><span class="explore-card-title">${heading}</span><span class="explore-card-subtitle">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</span></${tag}>`;
     }).join('');
     strip.classList.remove('expanded');
     toggle.setAttribute('aria-expanded', 'false');

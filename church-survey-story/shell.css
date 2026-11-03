@@ -2,13 +2,13 @@
 .result-strip-toggle{white-space:nowrap;flex-shrink:0}
 
 /* Reading pages share the ordinary, scrolling result header. */
-.voice-content[hidden],.explore-cards[hidden]{display:none!important}
+.reading-content[hidden],.explore-cards[hidden]{display:none!important}
 a.explore-card{display:flex;flex-direction:column;justify-content:center;text-decoration:none;color:inherit}
-body[data-view="voice-of-our-people"] .results-main{max-width:900px}
-body[data-view="voice-of-our-people"] .results-section-title{font-size:clamp(40px,6vw,72px);line-height:1.08;margin:0 0 64px}
-.voice-content{font-size:clamp(18px,2vw,21px);line-height:1.65}
-.voice-content section+section{margin-top:64px}
-.voice-content h2{font-size:clamp(30px,4vw,42px);line-height:1.15;margin:0 0 24px}
-.voice-content h3{font-size:clamp(23px,3vw,30px);line-height:1.25;margin:0 0 20px}
-.voice-content p{margin:0 0 1.3em}
-.voice-content .voice-quote{line-height:1.45;margin-bottom:1.5em}
+body[data-reading-page="true"] .results-main{max-width:900px}
+body[data-reading-page="true"] .results-section-title{font-size:clamp(40px,6vw,72px);line-height:1.08;margin:0 0 64px}
+.reading-content{font-size:clamp(18px,2vw,21px);line-height:1.65}
+.reading-content section+section{margin-top:64px}
+.reading-content h2{font-size:clamp(30px,4vw,42px);line-height:1.15;margin:0 0 24px}
+.reading-content h3{font-size:clamp(23px,3vw,30px);line-height:1.25;margin:0 0 20px}
+.reading-content p{margin:0 0 1.3em}
+.reading-content .voice-quote{line-height:1.45;margin-bottom:1.5em}
