@@ -163,3 +163,22 @@ $('discover').onclick=()=>{
   else if(destination)location.assign(destination.href);
   else {$('demo').hidden=false;$('demo').setAttribute('role','status')}
 };
+
+// Keep reading and focus order aligned with the mobile visual layout.
+// Move the existing introduction rather than duplicating its heading or state.
+const stackedLayout = matchMedia('(max-width: 1050px)');
+function positionIntroduction() {
+  const introduction = $('introduction');
+  const layout = document.querySelector('.layout');
+  const ranking = document.querySelector('.ranking');
+  const plant = document.querySelector('.plant');
+  if (stackedLayout.matches) {
+    layout.prepend(introduction);
+    layout.insertBefore(plant, ranking);
+  } else {
+    ranking.prepend(introduction);
+    layout.insertBefore(ranking, plant);
+  }
+}
+stackedLayout.addEventListener('change', positionIntroduction);
+positionIntroduction();
